@@ -44,6 +44,9 @@ jobs:
       - name: Type-check
         run: npm run typecheck
 
+      - name: Validate OpenAPI contract
+        run: npm run openapi:check
+
       - name: Test
         run: npm test
 
@@ -96,3 +99,6 @@ jobs:
 
       - name: Test database and authentication
         run: npm run test:integration
+
+      - name: Run Postman collection with Newman
+        run: npm run postman:test

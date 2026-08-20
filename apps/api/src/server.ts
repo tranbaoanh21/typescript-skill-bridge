@@ -24,6 +24,7 @@ const app = createApp({
     await pool.query('SELECT 1');
   },
   corsOrigin: environment.WEB_ORIGIN,
+  enableApiDocs: environment.ENABLE_API_DOCS,
 });
 const server = createServer(app);
 

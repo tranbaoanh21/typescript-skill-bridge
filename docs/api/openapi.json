@@ -1,0 +1,718 @@
+{
+  "info": {
+    "description": "HTTP contract for HCMUT SkillBridge web, mobile, and API-testing clients.",
+    "title": "HCMUT SkillBridge API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "servers": [
+    {
+      "description": "Local development",
+      "url": "http://localhost:3000"
+    },
+    {
+      "description": "Current origin",
+      "url": "/"
+    }
+  ],
+  "tags": [
+    {
+      "description": "Process and dependency health probes.",
+      "name": "Health"
+    },
+    {
+      "description": "Account sessions and access tokens.",
+      "name": "Authentication"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "bearerFormat": "JWT",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "AuthEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AuthResult"
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "AuthResult": {
+        "type": "object",
+        "properties": {
+          "tokens": {
+            "$ref": "#/components/schemas/TokenPair"
+          },
+          "user": {
+            "$ref": "#/components/schemas/PublicUser"
+          }
+        },
+        "required": [
+          "tokens",
+          "user"
+        ]
+      },
+      "CurrentUserEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "user": {
+                "$ref": "#/components/schemas/PublicUser"
+              }
+            },
+            "required": [
+              "user"
+            ]
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "ErrorEnvelope": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "example": "AUTH_INVALID_CREDENTIALS"
+              },
+              "details": {},
+              "message": {
+                "type": "string",
+                "example": "The email or password is incorrect."
+              },
+              "requestId": {
+                "type": "string",
+                "example": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+              }
+            },
+            "required": [
+              "code",
+              "message",
+              "requestId"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "LiveHealth": {
+        "type": "object",
+        "properties": {
+          "service": {
+            "type": "string",
+            "enum": [
+              "skillbridge-api"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok"
+            ]
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-08-20T12:00:00.000Z"
+          }
+        },
+        "required": [
+          "service",
+          "status",
+          "timestamp"
+        ]
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 320,
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "LogoutRequest": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 256
+          }
+        },
+        "required": [
+          "refreshToken"
+        ]
+      },
+      "PublicUser": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "student@hcmut.edu.vn"
+          },
+          "globalRole": {
+            "type": "string",
+            "enum": [
+              "STUDENT",
+              "MENTOR",
+              "ADMIN"
+            ],
+            "example": "STUDENT"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "d3d9676f-7a0a-4e99-9c41-7a7ec33cfe39"
+          }
+        },
+        "required": [
+          "email",
+          "globalRole",
+          "id"
+        ]
+      },
+      "ReadyHealth": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/LiveHealth"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "dependencies": {
+                "type": "object",
+                "properties": {
+                  "database": {
+                    "type": "string",
+                    "enum": [
+                      "ready"
+                    ]
+                  }
+                },
+                "required": [
+                  "database"
+                ]
+              }
+            },
+            "required": [
+              "dependencies"
+            ]
+          }
+        ]
+      },
+      "RefreshRequest": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 256
+          }
+        },
+        "required": [
+          "refreshToken"
+        ]
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 320,
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "displayName",
+          "email",
+          "password"
+        ]
+      },
+      "TokenPair": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiJ9..."
+          },
+          "expiresIn": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "example": 900
+          },
+          "refreshToken": {
+            "type": "string",
+            "example": "opaque-refresh-token-value"
+          },
+          "tokenType": {
+            "type": "string",
+            "enum": [
+              "Bearer"
+            ]
+          }
+        },
+        "required": [
+          "accessToken",
+          "expiresIn",
+          "refreshToken",
+          "tokenType"
+        ]
+      },
+      "UnavailableHealth": {
+        "type": "object",
+        "properties": {
+          "dependencies": {
+            "type": "object",
+            "properties": {
+              "database": {
+                "type": "string",
+                "enum": [
+                  "unavailable"
+                ]
+              }
+            },
+            "required": [
+              "database"
+            ]
+          },
+          "service": {
+            "type": "string",
+            "enum": [
+              "skillbridge-api"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "unavailable"
+            ]
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "dependencies",
+          "service",
+          "status",
+          "timestamp"
+        ]
+      }
+    },
+    "parameters": {}
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Legacy health check",
+        "tags": [
+          "Health"
+        ],
+        "responses": {
+          "200": {
+            "description": "The API process is alive.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiveHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/live": {
+      "get": {
+        "summary": "Liveness check",
+        "tags": [
+          "Health"
+        ],
+        "responses": {
+          "200": {
+            "description": "The API process is alive.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiveHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "summary": "Readiness check",
+        "tags": [
+          "Health"
+        ],
+        "responses": {
+          "200": {
+            "description": "The API and PostgreSQL are ready to receive traffic.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadyHealth"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "PostgreSQL is unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnavailableHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "summary": "Register an account",
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "description": "New account credentials and display name.",
+          "content": {
+            "application/json": {
+              "example": {
+                "displayName": "Bao Anh",
+                "email": "baoanh@hcmut.edu.vn",
+                "password": "correct-horse-battery-staple"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Account and initial session created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The normalized email already exists.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_EMAIL_ALREADY_EXISTS",
+                    "message": "An account with this email already exists.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "summary": "Log in",
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "email": "baoanh@hcmut.edu.vn",
+                "password": "correct-horse-battery-staple"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Credentials verified and a new session created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credentials are invalid.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_INVALID_CREDENTIALS",
+                    "message": "The email or password is incorrect.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The account is suspended.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_ACCOUNT_SUSPENDED",
+                    "message": "This account is suspended.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "summary": "Rotate a refresh token",
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "refreshToken": "opaque-refresh-token-value-from-login"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Refresh token rotated and a new token pair issued.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The refresh token is invalid, expired, revoked, or reused.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_REFRESH_TOKEN_INVALID",
+                    "message": "The refresh token is invalid or expired.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "summary": "Log out",
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "refreshToken": "opaque-refresh-token-value-from-login"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/LogoutRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "The refresh session is revoked idempotently."
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Get the current authenticated user",
+        "tags": [
+          "Authentication"
+        ],
+        "responses": {
+          "200": {
+            "description": "Claims from the verified access token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentUserEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The Bearer token is missing, invalid, or expired.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_ACCESS_TOKEN_INVALID",
+                    "message": "The access token is invalid or expired.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "webhooks": {}
+}

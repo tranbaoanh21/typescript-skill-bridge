@@ -54,6 +54,8 @@ The initial development endpoints are:
 - API health: `http://localhost:3000/health`
 - API readiness: `http://localhost:3000/health/ready`
 - Authentication API: `http://localhost:3000/api/v1/auth`
+- Swagger UI: `http://localhost:3000/docs`
+- OpenAPI JSON: `http://localhost:3000/docs/openapi.json`
 
 Run the complete local quality gate:
 
@@ -93,4 +95,15 @@ Postgres.app and pgAdmin 4 setup, the physical ERD, constraint ownership, and mi
 
 Phase 4 provides register, login, refresh-token rotation, logout, current-user access, request IDs, consistent errors, and global-role middleware. Configure `apps/api/.env` from `apps/api/.env.example` before starting the API.
 
-The security model and endpoint contract are documented in [docs/security/authentication.md](docs/security/authentication.md). OpenAPI and the Postman collection are delivered in Phase 5.
+The authentication security model is documented in [docs/security/authentication.md](docs/security/authentication.md). OpenAPI and Postman artifacts live under `docs/api/` and `postman/`.
+
+## API contract testing
+
+OpenAPI is generated from the API's Zod validation schemas and route registry. The committed JSON,
+Swagger UI instructions, and Postman/Newman workflow are documented in
+[docs/api/README.md](docs/api/README.md).
+
+```bash
+npm run openapi:check
+TEST_DATABASE_URL=postgresql://skillbridge:skillbridge@localhost:5434/skillbridge_test npm run postman:test
+```
