@@ -49,3 +49,50 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  database:
+    name: Database integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CI: true
+      DATABASE_URL: postgresql://skillbridge:skillbridge@localhost:5432/skillbridge_test
+      DATABASE_DIRECT_URL: postgresql://skillbridge:skillbridge@localhost:5432/skillbridge_test
+      TEST_DATABASE_URL: postgresql://skillbridge:skillbridge@localhost:5432/skillbridge_test
+      TURBO_TELEMETRY_DISABLED: 1
+    services:
+      postgres:
+        image: postgres:18.4-alpine
+        env:
+          POSTGRES_DB: skillbridge_test
+          POSTGRES_USER: skillbridge
+          POSTGRES_PASSWORD: skillbridge
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U skillbridge -d skillbridge_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply migrations
+        run: npm run db:migrate
+
+      - name: Verify idempotent seed
+        run: npm run db:seed && npm run db:seed
+
+      - name: Test database invariants
+        run: npm run test:integration

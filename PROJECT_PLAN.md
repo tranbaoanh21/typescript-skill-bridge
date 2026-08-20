@@ -1,6 +1,6 @@
 # HCMUT SkillBridge — Ultimate Full-stack Project Plan
 
-> Trạng thái: **DRAFT — đã chốt product/MVP, còn các decision gates kỹ thuật**
+> Trạng thái: **IN PROGRESS — monorepo và PostgreSQL foundation đã hoàn tất**
 > Đối tượng học: sinh viên năm 2 HCMUT
 > Mục tiêu: xây dựng một sản phẩm đủ chiều sâu để học Công nghệ phần mềm, full-stack TypeScript, cơ sở dữ liệu, realtime, message queue, DevOps, mobile và nền tảng AWS.
 > Repository: [`tranbaoanh21/typescript-skill-bridge`](https://github.com/tranbaoanh21/typescript-skill-bridge)
@@ -46,16 +46,16 @@ Sinh viên thường gặp các vấn đề:
 
 ## 2. Decision gates cần chốt
 
-Không triển khai vượt qua Phase 0 trước khi các quyết định `D0`–`D8` được xác nhận.
+Mỗi decision gate phải được chốt trước phase trực tiếp phụ thuộc vào quyết định đó; gate của các phase sau không chặn MVP foundation.
 
 | ID | Quyết định | Đề xuất mặc định | Trạng thái |
 |---|---|---|---|
 | D0 | Chọn bài toán | HCMUT SkillBridge | Đã chốt 20/08/2026 |
 | D1 | UI agent skill | [`leonxlnx/taste-skill`](https://github.com/Leonxlnx/taste-skill), mặc định `design-taste-frontend` | Đã xác nhận nguồn; chờ chốt variant/pin |
 | D2 | Phạm vi MVP | Profile + Project + Application + Team + Task | Đã chốt 20/08/2026 |
-| D3 | Database access | Drizzle ORM + SQL migrations + `pg` driver | Chờ xác nhận |
-| D4 | Monorepo tooling | npm workspaces + Turborepo | Chờ xác nhận |
-| D5 | Managed PostgreSQL | Neon cho production; Postgres.app cho local | Chờ xác nhận |
+| D3 | Database access | Drizzle ORM + SQL migrations + `pg` driver | Đã áp dụng 20/08/2026 |
+| D4 | Monorepo tooling | npm workspaces + Turborepo | Đã áp dụng 20/08/2026 |
+| D5 | Managed PostgreSQL | Neon cho production; Postgres.app cho local | Đã chốt baseline 20/08/2026 |
 | D6 | Backend deployment đầu tiên | Docker trên AWS EC2; web trên Vercel | Chờ xác nhận |
 | D7 | Repository visibility | GitHub public để dùng làm portfolio | Chờ xác nhận |
 | D8 | Frontend data/routing libraries | TanStack Query + React Router; đánh giá TanStack Router sau MVP | Chờ xác nhận |
@@ -747,6 +747,8 @@ Thời lượng chỉ là ước lượng học tập. Mỗi phase kết thúc b
 
 ### Phase 2 — Repository và monorepo foundation (3–4 ngày)
 
+**Trạng thái:** Hoàn tất ngày 20/08/2026.
+
 **Mục tiêu**
 
 - Tạo nền tảng TypeScript có thể phát triển dài hạn.
@@ -768,6 +770,8 @@ Thời lượng chỉ là ước lượng học tập. Mỗi phase kết thúc b
 - Không có secret trong repository.
 
 ### Phase 3 — PostgreSQL design và migrations (5–7 ngày)
+
+**Trạng thái:** Hoàn tất ngày 20/08/2026; migration, seed, integration tests và query-plan check đã chạy trên PostgreSQL 18.4.
 
 **Mục tiêu**
 

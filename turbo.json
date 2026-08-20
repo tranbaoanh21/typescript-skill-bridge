@@ -20,6 +20,11 @@
       "dependsOn": ["^build"],
       "outputs": []
     },
+    "test:integration": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "outputs": []
+    },
     "typecheck": {
       "dependsOn": ["^build"],
       "outputs": []
