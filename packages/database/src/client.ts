@@ -1,5 +1,5 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
+import { Pool, type PoolClient } from 'pg';
 
 import type { DatabaseEnvironment } from './config.js';
 export const createDatabaseClient = (environment: DatabaseEnvironment) => {
@@ -13,3 +13,5 @@ export const createDatabaseClient = (environment: DatabaseEnvironment) => {
 };
 
 export type DatabaseClient = ReturnType<typeof createDatabaseClient>['database'];
+export type DatabasePool = ReturnType<typeof createDatabaseClient>['pool'];
+export type DatabasePoolClient = PoolClient;

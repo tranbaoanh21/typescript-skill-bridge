@@ -7,6 +7,8 @@ import { createDocsRouter } from './docs/docs.routes.js';
 import { createAuthRouter } from './modules/auth/auth.routes.js';
 import type { AuthServiceContract } from './modules/auth/auth.types.js';
 import type { TokenService } from './modules/auth/token.service.js';
+import { createDomainRouter } from './modules/domain/domain.routes.js';
+import type { DomainService } from './modules/domain/domain.service.js';
 import { createHealthRouter, type ReadinessCheck } from './modules/health/health.routes.js';
 import { handleError } from './shared/http/error-handler.js';
 import { createRequestId } from './shared/http/request-context.js';
@@ -18,6 +20,10 @@ export interface AppOptions {
   };
   checkReadiness?: ReadinessCheck;
   corsOrigin: string;
+  domain?: {
+    service: DomainService;
+    tokenService: TokenService;
+  };
   enableApiDocs?: boolean;
   enableRequestLogging?: boolean;
 }
@@ -26,6 +32,7 @@ export const createApp = ({
   auth,
   checkReadiness = async () => undefined,
   corsOrigin,
+  domain,
   enableApiDocs = false,
   enableRequestLogging = true,
 }: AppOptions) => {
@@ -59,6 +66,10 @@ export const createApp = ({
 
   if (auth) {
     app.use('/api/v1/auth', createAuthRouter(auth.service, auth.tokenService));
+  }
+
+  if (domain) {
+    app.use('/api/v1', createDomainRouter(domain.service, domain.tokenService));
   }
 
   app.use((request, response) => {

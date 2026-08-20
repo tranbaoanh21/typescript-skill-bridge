@@ -9,6 +9,7 @@ import { createApp } from '../src/app.js';
 import { AuthRepository } from '../src/modules/auth/auth.repository.js';
 import { AuthService } from '../src/modules/auth/auth.service.js';
 import { TokenService } from '../src/modules/auth/token.service.js';
+import { DomainService } from '../src/modules/domain/domain.service.js';
 
 const testDatabaseUrl = process.env['TEST_DATABASE_URL'];
 
@@ -40,11 +41,14 @@ const app = createApp({
     await pool.query('SELECT 1');
   },
   corsOrigin: 'http://localhost:5173',
+  domain: { service: new DomainService(pool), tokenService },
   enableApiDocs: true,
   enableRequestLogging: false,
 });
 const server = createServer(app);
 const testEmail = `postman-${randomUUID()}@example.com`;
+const applicantEmail = `postman-applicant-${randomUUID()}@example.com`;
+const projectSlug = `postman-${randomUUID()}`;
 const collectionPath = fileURLToPath(
   new URL('../../../postman/SkillBridge.postman_collection.json', import.meta.url),
 );
@@ -68,6 +72,11 @@ const closeServer = () =>
   });
 
 try {
+  await pool.query(
+    `INSERT INTO skills (id, slug, name)
+     VALUES ('00000000-0000-4000-8000-000000000199', 'domain-integration', 'Domain Integration')
+     ON CONFLICT (id) DO NOTHING`,
+  );
   const port = await listen();
 
   await new Promise<void>((resolve, reject) => {
@@ -76,6 +85,8 @@ try {
         collection: collectionPath,
         envVar: [
           { key: 'baseUrl', value: `http://127.0.0.1:${port}` },
+          { key: 'applicantEmail', value: applicantEmail },
+          { key: 'projectSlug', value: projectSlug },
           { key: 'testEmail', value: testEmail },
           { key: 'testPassword', value: 'correct-horse-battery-staple' },
         ],
@@ -98,7 +109,13 @@ try {
     );
   });
 } finally {
-  await pool.query('DELETE FROM users WHERE email = $1', [testEmail]);
+  await pool.query(
+    'DELETE FROM projects WHERE owner_id IN (SELECT id FROM users WHERE email = ANY($1::text[]))',
+    [[testEmail, applicantEmail]],
+  );
+  await pool.query('DELETE FROM users WHERE email = ANY($1::text[])', [
+    [testEmail, applicantEmail],
+  ]);
   if (server.listening) {
     await closeServer();
   }

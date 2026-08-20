@@ -1,6 +1,6 @@
-# Physical ERD — Phase 3
+# Physical ERD — Phase 6
 
-This diagram mirrors the tables shipped in the Phase 3 migrations. Task, sprint, review, notification, and messaging tables belong to later phases.
+This diagram mirrors the tables shipped through Phase 6. Review, notification, outbox, and messaging tables belong to later phases.
 
 ```mermaid
 erDiagram
@@ -19,6 +19,14 @@ erDiagram
     USERS ||--o{ PROJECT_MEMBERS : joins
     PROJECTS ||--o{ PROJECT_MEMBERS : contains
     PROJECT_APPLICATIONS o|--o| PROJECT_MEMBERS : creates
+    PROJECTS ||--o{ SPRINTS : plans
+    PROJECTS ||--o{ TASKS : contains
+    SPRINTS o|--o{ TASKS : groups
+    TASKS ||--o{ TASK_ASSIGNEES : assigns
+    PROJECT_MEMBERS ||--o{ TASK_ASSIGNEES : eligible_for
+    TASKS ||--o{ TASK_ACTIVITIES : records
+    USERS ||--o{ TASK_ACTIVITIES : performs
+    USERS o|--o{ AUDIT_LOGS : acts
 
     USERS {
         uuid id PK
@@ -118,5 +126,54 @@ erDiagram
         project_role project_role
         uuid source_application_id FK,UK
         timestamptz joined_at
+    }
+
+    SPRINTS {
+        uuid id PK
+        uuid project_id FK
+        varchar name
+        date starts_on
+        date ends_on
+        sprint_status status
+        integer version
+    }
+
+    TASKS {
+        uuid id PK
+        uuid project_id FK
+        uuid sprint_id FK
+        uuid created_by FK
+        varchar title
+        task_status status
+        task_priority priority
+        integer position
+        integer version
+    }
+
+    TASK_ASSIGNEES {
+        uuid task_id PK,FK
+        uuid project_id FK
+        uuid user_id PK,FK
+        timestamptz assigned_at
+    }
+
+    TASK_ACTIVITIES {
+        uuid id PK
+        uuid task_id FK
+        uuid actor_id FK
+        varchar action
+        jsonb before
+        jsonb after
+    }
+
+    AUDIT_LOGS {
+        uuid id PK
+        uuid actor_id
+        varchar action
+        varchar target_type
+        uuid target_id
+        varchar request_id
+        jsonb metadata
+        timestamptz created_at
     }
 ```

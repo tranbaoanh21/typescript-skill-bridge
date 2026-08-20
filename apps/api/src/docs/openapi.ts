@@ -1,5 +1,4 @@
 import { OpenAPIRegistry, OpenApiGeneratorV31 } from '@asteasolutions/zod-to-openapi';
-import { z } from 'zod';
 
 import {
   loginSchema,
@@ -7,6 +6,21 @@ import {
   refreshSchema,
   registerSchema,
 } from '../modules/auth/auth.schemas.js';
+import {
+  accountStatusSchema,
+  applicationCreateSchema,
+  applicationDecisionSchema,
+  profileUpdateSchema,
+  projectCreateSchema,
+  projectListQuerySchema,
+  projectTransitionSchema,
+  projectUpdateSchema,
+  sprintCreateSchema,
+  taskCreateSchema,
+  taskUpdateSchema,
+  userSkillsUpdateSchema,
+} from '../modules/domain/domain.schemas.js';
+import { z } from '../shared/validation/zod.js';
 
 const registry = new OpenAPIRegistry();
 
@@ -68,6 +82,10 @@ const unavailableHealthSchema = registry.register(
     status: z.literal('unavailable'),
     timestamp: z.iso.datetime(),
   }),
+);
+const domainSuccessSchema = registry.register(
+  'DomainSuccessEnvelope',
+  z.object({ data: z.record(z.string(), z.unknown()) }),
 );
 
 const registerRequestSchema = registry.register('RegisterRequest', registerSchema);
@@ -165,6 +183,292 @@ registry.registerPath({
   },
   summary: 'Register an account',
   tags: ['Authentication'],
+});
+
+const projectIdParams = z.object({
+  projectId: z.uuid().openapi({ param: { in: 'path', name: 'projectId' } }),
+});
+const idParams = z.object({ id: z.uuid().openapi({ param: { in: 'path', name: 'id' } }) });
+const applicationIdParams = z.object({
+  applicationId: z.uuid().openapi({ param: { in: 'path', name: 'applicationId' } }),
+});
+const taskIdParams = z.object({
+  taskId: z.uuid().openapi({ param: { in: 'path', name: 'taskId' } }),
+});
+const slugParams = z.object({
+  slug: z.string().openapi({ param: { in: 'path', name: 'slug' }, example: 'hcmut-skillbridge' }),
+});
+
+interface DomainPathOptions {
+  authenticated?: boolean;
+  body?: z.ZodType;
+  bodyExample?: unknown;
+  method: 'get' | 'post' | 'put' | 'patch';
+  params?: z.ZodObject;
+  path: string;
+  query?: z.ZodObject;
+  status?: number;
+  summary: string;
+  tag: 'Profiles' | 'Projects' | 'Applications' | 'Workspace' | 'Administration';
+}
+
+const registerDomainPath = ({
+  authenticated = true,
+  body,
+  bodyExample,
+  method,
+  params,
+  path,
+  query,
+  status = method === 'post' ? 201 : 200,
+  summary,
+  tag,
+}: DomainPathOptions) => {
+  const request = {
+    ...(body
+      ? {
+          body: {
+            content: { 'application/json': { example: bodyExample, schema: body } },
+          },
+        }
+      : {}),
+    ...(params ? { params } : {}),
+    ...(query ? { query } : {}),
+  };
+
+  registry.registerPath({
+    method,
+    path,
+    ...(Object.keys(request).length > 0 ? { request } : {}),
+    responses: {
+      [status]: {
+        content: {
+          'application/json': {
+            example: { data: { result: 'See the named resource schema in the response.' } },
+            schema: domainSuccessSchema,
+          },
+        },
+        description: 'The operation completed successfully.',
+      },
+      400: errorResponse(
+        'Payload validation failed.',
+        'VALIDATION_ERROR',
+        'The request payload is invalid.',
+      ),
+      ...(authenticated
+        ? {
+            401: errorResponse(
+              'Authentication is missing or invalid.',
+              'AUTH_UNAUTHORIZED',
+              'Authentication is required.',
+            ),
+            403: errorResponse(
+              'The caller lacks the required permission.',
+              'AUTH_FORBIDDEN',
+              'You do not have permission.',
+            ),
+          }
+        : {}),
+      404: errorResponse(
+        'The requested resource was not found.',
+        'RESOURCE_NOT_FOUND',
+        'The resource does not exist.',
+      ),
+      409: errorResponse(
+        'A domain invariant or version check failed.',
+        'VERSION_CONFLICT',
+        'The resource was changed by another request.',
+      ),
+    },
+    ...(authenticated ? { security: [{ bearerAuth: [] }] } : {}),
+    summary,
+    tags: [tag],
+  });
+};
+
+registerDomainPath({
+  authenticated: false,
+  method: 'get',
+  path: '/api/v1/skills',
+  summary: 'List the skill catalog',
+  tag: 'Profiles',
+});
+registerDomainPath({
+  method: 'get',
+  path: '/api/v1/profile',
+  summary: 'Get the current profile',
+  tag: 'Profiles',
+});
+registerDomainPath({
+  body: profileUpdateSchema,
+  bodyExample: {
+    bio: 'Second-year HCMUT student learning full-stack TypeScript.',
+    major: 'Computer Science',
+  },
+  method: 'put',
+  path: '/api/v1/profile',
+  summary: 'Update the current profile',
+  tag: 'Profiles',
+});
+registerDomainPath({
+  body: userSkillsUpdateSchema,
+  bodyExample: { skills: [{ level: 4, skillId: '00000000-0000-4000-8000-000000000102' }] },
+  method: 'put',
+  path: '/api/v1/profile/skills',
+  summary: 'Replace current-user skills',
+  tag: 'Profiles',
+});
+registerDomainPath({
+  authenticated: false,
+  method: 'get',
+  path: '/api/v1/projects',
+  query: projectListQuerySchema,
+  summary: 'Discover public projects',
+  tag: 'Projects',
+});
+registerDomainPath({
+  authenticated: false,
+  method: 'get',
+  params: slugParams,
+  path: '/api/v1/projects/{slug}',
+  summary: 'Get a public project',
+  tag: 'Projects',
+});
+registerDomainPath({
+  body: projectCreateSchema,
+  bodyExample: {
+    capacity: 5,
+    description: 'Build a collaboration platform for HCMUT student projects.',
+    requiredSkills: [],
+    slug: 'hcmut-skillbridge',
+    title: 'HCMUT SkillBridge',
+  },
+  method: 'post',
+  path: '/api/v1/projects',
+  summary: 'Create a draft project',
+  tag: 'Projects',
+});
+registerDomainPath({
+  body: projectUpdateSchema,
+  bodyExample: { capacity: 6, title: 'HCMUT SkillBridge MVP', version: 1 },
+  method: 'patch',
+  params: idParams,
+  path: '/api/v1/projects/{id}',
+  summary: 'Update a project with optimistic concurrency',
+  tag: 'Projects',
+});
+registerDomainPath({
+  body: projectTransitionSchema,
+  bodyExample: { action: 'PUBLISH', version: 1 },
+  method: 'post',
+  params: idParams,
+  path: '/api/v1/projects/{id}/transitions',
+  status: 200,
+  summary: 'Transition project lifecycle state',
+  tag: 'Projects',
+});
+registerDomainPath({
+  method: 'get',
+  params: projectIdParams,
+  path: '/api/v1/projects/{projectId}/members',
+  summary: 'List project members',
+  tag: 'Projects',
+});
+registerDomainPath({
+  body: applicationCreateSchema,
+  bodyExample: { coverLetter: 'I can contribute TypeScript and PostgreSQL experience.' },
+  method: 'post',
+  params: projectIdParams,
+  path: '/api/v1/projects/{projectId}/applications',
+  summary: 'Apply to a recruiting project',
+  tag: 'Applications',
+});
+registerDomainPath({
+  method: 'get',
+  path: '/api/v1/applications/me',
+  summary: 'List current-user applications',
+  tag: 'Applications',
+});
+registerDomainPath({
+  method: 'post',
+  params: applicationIdParams,
+  path: '/api/v1/applications/{applicationId}/withdraw',
+  status: 200,
+  summary: 'Withdraw a pending application',
+  tag: 'Applications',
+});
+registerDomainPath({
+  method: 'get',
+  params: projectIdParams,
+  path: '/api/v1/projects/{projectId}/applications',
+  summary: 'List applications for a managed project',
+  tag: 'Applications',
+});
+registerDomainPath({
+  body: applicationDecisionSchema,
+  bodyExample: { decision: 'ACCEPTED', note: 'Strong fit for the project.' },
+  method: 'post',
+  params: applicationIdParams,
+  path: '/api/v1/applications/{applicationId}/decision',
+  status: 200,
+  summary: 'Accept or reject a pending application atomically',
+  tag: 'Applications',
+});
+registerDomainPath({
+  body: sprintCreateSchema,
+  bodyExample: { endsOn: '2026-09-07', name: 'Sprint 1', startsOn: '2026-09-01' },
+  method: 'post',
+  params: projectIdParams,
+  path: '/api/v1/projects/{projectId}/sprints',
+  summary: 'Create a sprint',
+  tag: 'Workspace',
+});
+registerDomainPath({
+  method: 'get',
+  params: projectIdParams,
+  path: '/api/v1/projects/{projectId}/sprints',
+  summary: 'List project sprints',
+  tag: 'Workspace',
+});
+registerDomainPath({
+  body: taskCreateSchema,
+  bodyExample: { assigneeIds: [], priority: 'HIGH', title: 'Build project discovery page' },
+  method: 'post',
+  params: projectIdParams,
+  path: '/api/v1/projects/{projectId}/tasks',
+  summary: 'Create a project task',
+  tag: 'Workspace',
+});
+registerDomainPath({
+  method: 'get',
+  params: projectIdParams,
+  path: '/api/v1/projects/{projectId}/tasks',
+  summary: 'List project tasks',
+  tag: 'Workspace',
+});
+registerDomainPath({
+  body: taskUpdateSchema,
+  bodyExample: { status: 'IN_PROGRESS', version: 1 },
+  method: 'patch',
+  params: taskIdParams,
+  path: '/api/v1/tasks/{taskId}',
+  summary: 'Update a task with optimistic concurrency',
+  tag: 'Workspace',
+});
+registerDomainPath({
+  body: accountStatusSchema,
+  bodyExample: { status: 'SUSPENDED' },
+  method: 'patch',
+  params: idParams,
+  path: '/api/v1/admin/users/{id}/status',
+  summary: 'Suspend or restore a user',
+  tag: 'Administration',
+});
+registerDomainPath({
+  method: 'get',
+  path: '/api/v1/admin/audit-logs',
+  summary: 'List immutable audit events',
+  tag: 'Administration',
 });
 
 registry.registerPath({
@@ -299,6 +603,11 @@ export const createOpenApiDocument = () =>
     tags: [
       { description: 'Process and dependency health probes.', name: 'Health' },
       { description: 'Account sessions and access tokens.', name: 'Authentication' },
+      { description: 'Current-user profile and skill catalog.', name: 'Profiles' },
+      { description: 'Project discovery, ownership, and lifecycle.', name: 'Projects' },
+      { description: 'Application submission and decisions.', name: 'Applications' },
+      { description: 'Member-only sprints and task board.', name: 'Workspace' },
+      { description: 'Global moderation and audit events.', name: 'Administration' },
     ],
   });
 
