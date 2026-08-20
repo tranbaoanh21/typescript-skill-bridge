@@ -10,7 +10,7 @@ Create a profile → Find a project → Apply → Form a team → Collaborate �
 
 ## Project status
 
-The project is currently in product discovery and software architecture planning. Application scaffolding will be introduced through reviewed, short-lived feature branches.
+The TypeScript monorepo and PostgreSQL foundation are operational. Core MVP implementation is proceeding through reviewed, short-lived feature branches.
 
 ## Planned platform
 
@@ -39,6 +39,7 @@ Requirements:
 
 - Node.js `24.19.0` (see `.nvmrc`)
 - npm `11.17.0`
+- Docker Desktop or Postgres.app for PostgreSQL
 
 Install dependencies and run both applications:
 
@@ -61,3 +62,27 @@ npm run typecheck
 npm test
 npm run build
 ```
+
+## Database development
+
+Start isolated PostgreSQL 18.4 dev and test databases:
+
+```bash
+docker compose -f infrastructure/docker/compose.database.yaml up -d --wait
+```
+
+Configure `packages/database/.env` from `packages/database/.env.example`, then run:
+
+```bash
+npm run db:migrate
+npm run db:seed
+npm run db:explain
+```
+
+Run invariant tests against the test database:
+
+```bash
+TEST_DATABASE_URL=postgresql://skillbridge:skillbridge@localhost:5434/skillbridge_test npm run test:integration
+```
+
+Postgres.app and pgAdmin 4 setup, the physical ERD, constraint ownership, and migration policy are documented in [docs/database/README.md](docs/database/README.md).
