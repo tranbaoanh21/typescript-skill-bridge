@@ -25,3 +25,9 @@ export const unauthorized = (code = 'AUTH_UNAUTHORIZED', message = 'Authenticati
 
 export const forbidden = (code = 'AUTH_FORBIDDEN', message = 'You do not have permission.') =>
   new ApiError({ code, message, status: 403 });
+
+export const notFound = (code: string, message: string) =>
+  new ApiError({ code, message, status: 404 });
+
+export const conflict = (code: string, message: string) =>
+  new ApiError({ code, message, status: 409 });

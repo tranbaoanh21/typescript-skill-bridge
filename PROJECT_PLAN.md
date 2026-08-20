@@ -843,6 +843,8 @@ Thời lượng chỉ là ước lượng học tập. Mỗi phase kết thúc b
 
 ### Phase 6 — Core domain API (8–12 ngày)
 
+**Trạng thái:** Hoàn tất ngày 20/08/2026; profile/project/application/workspace/admin API, capacity race test, optimistic concurrency, OpenAPI và Newman contract đã được kiểm chứng.
+
 **Mục tiêu**
 
 - Hoàn thành toàn bộ core business workflow ở backend.

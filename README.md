@@ -54,6 +54,7 @@ The initial development endpoints are:
 - API health: `http://localhost:3000/health`
 - API readiness: `http://localhost:3000/health/ready`
 - Authentication API: `http://localhost:3000/api/v1/auth`
+- Core domain API: `http://localhost:3000/api/v1`
 - Swagger UI: `http://localhost:3000/docs`
 - OpenAPI JSON: `http://localhost:3000/docs/openapi.json`
 
@@ -102,6 +103,9 @@ The authentication security model is documented in [docs/security/authentication
 OpenAPI is generated from the API's Zod validation schemas and route registry. The committed JSON,
 Swagger UI instructions, and Postman/Newman workflow are documented in
 [docs/api/README.md](docs/api/README.md).
+
+Phase 6 authorization, concurrency, and workflow decisions are documented in
+[docs/api/core-domain.md](docs/api/core-domain.md).
 
 ```bash
 npm run openapi:check

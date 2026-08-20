@@ -265,4 +265,83 @@ describe('PostgreSQL core invariants', () => {
       });
     });
   });
+
+  it('rejects a sprint whose start date is after its end date', async () => {
+    await inRollbackTransaction(async (client) => {
+      const ownerId = await insertUser(client);
+      const projectId = await insertProject(client, ownerId);
+      const error = await captureDatabaseError(
+        client.query(
+          `INSERT INTO sprints (project_id, name, starts_on, ends_on)
+           VALUES ($1, 'Invalid sprint', '2026-09-02', '2026-09-01')`,
+          [projectId],
+        ),
+      );
+
+      expect(error).toMatchObject({ code: '23514', constraint: 'sprints_dates_check' });
+    });
+  });
+
+  it('requires a task sprint to belong to the same project', async () => {
+    await inRollbackTransaction(async (client) => {
+      const ownerId = await insertUser(client);
+      const firstProjectId = await insertProject(client, ownerId);
+      const secondProjectId = await insertProject(client, ownerId);
+      const sprint = await client.query<{ id: string }>(
+        `INSERT INTO sprints (project_id, name, starts_on, ends_on)
+         VALUES ($1, 'First sprint', '2026-09-01', '2026-09-07') RETURNING id`,
+        [firstProjectId],
+      );
+      const error = await captureDatabaseError(
+        client.query(
+          `INSERT INTO tasks (project_id, sprint_id, created_by, title)
+           VALUES ($1, $2, $3, 'Cross-project task')`,
+          [secondProjectId, sprint.rows[0]!.id, ownerId],
+        ),
+      );
+
+      expect(error).toMatchObject({ code: '23503', constraint: 'tasks_sprint_project_fk' });
+    });
+  });
+
+  it('requires every task assignee to be a member of the same project', async () => {
+    await inRollbackTransaction(async (client) => {
+      const ownerId = await insertUser(client);
+      const outsiderId = await insertUser(client);
+      const projectId = await insertProject(client, ownerId);
+      const task = await client.query<{ id: string }>(
+        `INSERT INTO tasks (project_id, created_by, title)
+         VALUES ($1, $2, 'Invariant task') RETURNING id`,
+        [projectId, ownerId],
+      );
+      const error = await captureDatabaseError(
+        client.query(
+          `INSERT INTO task_assignees (task_id, project_id, user_id)
+           VALUES ($1, $2, $3)`,
+          [task.rows[0]!.id, projectId, outsiderId],
+        ),
+      );
+
+      expect(error).toMatchObject({
+        code: '23503',
+        constraint: 'task_assignees_member_identity_fk',
+      });
+    });
+  });
+
+  it('prevents audit records from being changed or deleted', async () => {
+    await inRollbackTransaction(async (client) => {
+      const actorId = await insertUser(client);
+      const audit = await client.query<{ id: string }>(
+        `INSERT INTO audit_logs (actor_id, action, target_type)
+         VALUES ($1, 'TEST_ACTION', 'TEST') RETURNING id`,
+        [actorId],
+      );
+      const error = await captureDatabaseError(
+        client.query('DELETE FROM audit_logs WHERE id = $1', [audit.rows[0]!.id]),
+      );
+
+      expect(error).toMatchObject({ code: '23514', constraint: 'audit_logs_immutable' });
+    });
+  });
 });

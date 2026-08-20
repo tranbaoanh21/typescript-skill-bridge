@@ -23,6 +23,26 @@
     {
       "description": "Account sessions and access tokens.",
       "name": "Authentication"
+    },
+    {
+      "description": "Current-user profile and skill catalog.",
+      "name": "Profiles"
+    },
+    {
+      "description": "Project discovery, ownership, and lifecycle.",
+      "name": "Projects"
+    },
+    {
+      "description": "Application submission and decisions.",
+      "name": "Applications"
+    },
+    {
+      "description": "Member-only sprints and task board.",
+      "name": "Workspace"
+    },
+    {
+      "description": "Global moderation and audit events.",
+      "name": "Administration"
     }
   ],
   "components": {
@@ -73,6 +93,18 @@
             "required": [
               "user"
             ]
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "DomainSuccessEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "additionalProperties": {}
           }
         },
         "required": [
@@ -467,6 +499,3123 @@
                   "error": {
                     "code": "AUTH_EMAIL_ALREADY_EXISTS",
                     "message": "An account with this email already exists.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/skills": {
+      "get": {
+        "summary": "List the skill catalog",
+        "tags": [
+          "Profiles"
+        ],
+        "responses": {
+          "200": {
+            "description": "The operation completed successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "result": "See the named resource schema in the response."
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DomainSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "RESOURCE_NOT_FOUND",
+                    "message": "The resource does not exist.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A domain invariant or version check failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VERSION_CONFLICT",
+                    "message": "The resource was changed by another request.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/profile": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Get the current profile",
+        "tags": [
+          "Profiles"
+        ],
+        "responses": {
+          "200": {
+            "description": "The operation completed successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "result": "See the named resource schema in the response."
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DomainSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or invalid.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_UNAUTHORIZED",
+                    "message": "Authentication is required.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the required permission.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_FORBIDDEN",
+                    "message": "You do not have permission.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "RESOURCE_NOT_FOUND",
+                    "message": "The resource does not exist.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A domain invariant or version check failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VERSION_CONFLICT",
+                    "message": "The resource was changed by another request.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Update the current profile",
+        "tags": [
+          "Profiles"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "bio": "Second-year HCMUT student learning full-stack TypeScript.",
+                "major": "Computer Science"
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "bio": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 2000
+                  },
+                  "displayName": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 120
+                  },
+                  "graduationYear": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 2000,
+                    "maximum": 2200
+                  },
+                  "major": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 160
+                  },
+                  "university": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 160
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The operation completed successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "result": "See the named resource schema in the response."
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DomainSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or invalid.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_UNAUTHORIZED",
+                    "message": "Authentication is required.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the required permission.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_FORBIDDEN",
+                    "message": "You do not have permission.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "RESOURCE_NOT_FOUND",
+                    "message": "The resource does not exist.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A domain invariant or version check failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VERSION_CONFLICT",
+                    "message": "The resource was changed by another request.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/profile/skills": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Replace current-user skills",
+        "tags": [
+          "Profiles"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "skills": [
+                  {
+                    "level": 4,
+                    "skillId": "00000000-0000-4000-8000-000000000102"
+                  }
+                ]
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "skills": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "level": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 5
+                        },
+                        "skillId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "required": [
+                        "level",
+                        "skillId"
+                      ]
+                    },
+                    "maxItems": 30
+                  }
+                },
+                "required": [
+                  "skills"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The operation completed successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "result": "See the named resource schema in the response."
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DomainSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or invalid.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_UNAUTHORIZED",
+                    "message": "Authentication is required.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the required permission.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_FORBIDDEN",
+                    "message": "You do not have permission.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "RESOURCE_NOT_FOUND",
+                    "message": "The resource does not exist.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A domain invariant or version check failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VERSION_CONFLICT",
+                    "message": "The resource was changed by another request.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects": {
+      "get": {
+        "summary": "Discover public projects",
+        "tags": [
+          "Projects"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "required": false,
+            "name": "search",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "required": false,
+            "name": "skill",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "RECRUITING",
+                "ACTIVE",
+                "COMPLETED"
+              ],
+              "default": "RECRUITING"
+            },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The operation completed successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "result": "See the named resource schema in the response."
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DomainSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "RESOURCE_NOT_FOUND",
+                    "message": "The resource does not exist.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A domain invariant or version check failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VERSION_CONFLICT",
+                    "message": "The resource was changed by another request.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Create a draft project",
+        "tags": [
+          "Projects"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "capacity": 5,
+                "description": "Build a collaboration platform for HCMUT student projects.",
+                "requiredSkills": [],
+                "slug": "hcmut-skillbridge",
+                "title": "HCMUT SkillBridge"
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "capacity": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 20,
+                    "maxLength": 10000
+                  },
+                  "requiredSkills": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "desiredLevel": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 5
+                        },
+                        "positions": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 50,
+                          "default": 1
+                        },
+                        "skillId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "required": [
+                        "desiredLevel",
+                        "skillId"
+                      ]
+                    },
+                    "maxItems": 20,
+                    "default": []
+                  },
+                  "slug": {
+                    "type": "string",
+                    "maxLength": 120,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 180
+                  }
+                },
+                "required": [
+                  "capacity",
+                  "description",
+                  "slug",
+                  "title"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The operation completed successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "result": "See the named resource schema in the response."
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DomainSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or invalid.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_UNAUTHORIZED",
+                    "message": "Authentication is required.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the required permission.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_FORBIDDEN",
+                    "message": "You do not have permission.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "RESOURCE_NOT_FOUND",
+                    "message": "The resource does not exist.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A domain invariant or version check failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VERSION_CONFLICT",
+                    "message": "The resource was changed by another request.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{slug}": {
+      "get": {
+        "summary": "Get a public project",
+        "tags": [
+          "Projects"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "hcmut-skillbridge"
+            },
+            "required": true,
+            "in": "path",
+            "name": "slug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The operation completed successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "result": "See the named resource schema in the response."
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DomainSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "RESOURCE_NOT_FOUND",
+                    "message": "The resource does not exist.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A domain invariant or version check failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VERSION_CONFLICT",
+                    "message": "The resource was changed by another request.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}": {
+      "patch": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Update a project with optimistic concurrency",
+        "tags": [
+          "Projects"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "in": "path",
+            "name": "id"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "capacity": 6,
+                "title": "HCMUT SkillBridge MVP",
+                "version": 1
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "capacity": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 20,
+                    "maxLength": 10000
+                  },
+                  "requiredSkills": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "desiredLevel": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 5
+                        },
+                        "positions": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 50,
+                          "default": 1
+                        },
+                        "skillId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "required": [
+                        "desiredLevel",
+                        "skillId"
+                      ]
+                    },
+                    "maxItems": 20
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 180
+                  },
+                  "version": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The operation completed successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "result": "See the named resource schema in the response."
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DomainSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or invalid.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_UNAUTHORIZED",
+                    "message": "Authentication is required.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the required permission.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_FORBIDDEN",
+                    "message": "You do not have permission.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "RESOURCE_NOT_FOUND",
+                    "message": "The resource does not exist.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A domain invariant or version check failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VERSION_CONFLICT",
+                    "message": "The resource was changed by another request.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/transitions": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Transition project lifecycle state",
+        "tags": [
+          "Projects"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "in": "path",
+            "name": "id"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "action": "PUBLISH",
+                "version": 1
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "PUBLISH",
+                      "START",
+                      "COMPLETE",
+                      "CANCEL",
+                      "ARCHIVE"
+                    ]
+                  },
+                  "version": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "required": [
+                  "action",
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The operation completed successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "result": "See the named resource schema in the response."
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DomainSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or invalid.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_UNAUTHORIZED",
+                    "message": "Authentication is required.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the required permission.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_FORBIDDEN",
+                    "message": "You do not have permission.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "RESOURCE_NOT_FOUND",
+                    "message": "The resource does not exist.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A domain invariant or version check failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VERSION_CONFLICT",
+                    "message": "The resource was changed by another request.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/members": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "List project members",
+        "tags": [
+          "Projects"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "in": "path",
+            "name": "projectId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The operation completed successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "result": "See the named resource schema in the response."
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DomainSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or invalid.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_UNAUTHORIZED",
+                    "message": "Authentication is required.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the required permission.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_FORBIDDEN",
+                    "message": "You do not have permission.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "RESOURCE_NOT_FOUND",
+                    "message": "The resource does not exist.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A domain invariant or version check failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VERSION_CONFLICT",
+                    "message": "The resource was changed by another request.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/applications": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Apply to a recruiting project",
+        "tags": [
+          "Applications"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "in": "path",
+            "name": "projectId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "coverLetter": "I can contribute TypeScript and PostgreSQL experience."
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "coverLetter": {
+                    "type": "string",
+                    "minLength": 20,
+                    "maxLength": 5000
+                  }
+                },
+                "required": [
+                  "coverLetter"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The operation completed successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "result": "See the named resource schema in the response."
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DomainSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or invalid.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_UNAUTHORIZED",
+                    "message": "Authentication is required.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the required permission.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_FORBIDDEN",
+                    "message": "You do not have permission.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "RESOURCE_NOT_FOUND",
+                    "message": "The resource does not exist.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A domain invariant or version check failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VERSION_CONFLICT",
+                    "message": "The resource was changed by another request.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "List applications for a managed project",
+        "tags": [
+          "Applications"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "in": "path",
+            "name": "projectId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The operation completed successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "result": "See the named resource schema in the response."
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DomainSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or invalid.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_UNAUTHORIZED",
+                    "message": "Authentication is required.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the required permission.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_FORBIDDEN",
+                    "message": "You do not have permission.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "RESOURCE_NOT_FOUND",
+                    "message": "The resource does not exist.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A domain invariant or version check failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VERSION_CONFLICT",
+                    "message": "The resource was changed by another request.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applications/me": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "List current-user applications",
+        "tags": [
+          "Applications"
+        ],
+        "responses": {
+          "200": {
+            "description": "The operation completed successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "result": "See the named resource schema in the response."
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DomainSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or invalid.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_UNAUTHORIZED",
+                    "message": "Authentication is required.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the required permission.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_FORBIDDEN",
+                    "message": "You do not have permission.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "RESOURCE_NOT_FOUND",
+                    "message": "The resource does not exist.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A domain invariant or version check failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VERSION_CONFLICT",
+                    "message": "The resource was changed by another request.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applications/{applicationId}/withdraw": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Withdraw a pending application",
+        "tags": [
+          "Applications"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "in": "path",
+            "name": "applicationId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The operation completed successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "result": "See the named resource schema in the response."
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DomainSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or invalid.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_UNAUTHORIZED",
+                    "message": "Authentication is required.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the required permission.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_FORBIDDEN",
+                    "message": "You do not have permission.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "RESOURCE_NOT_FOUND",
+                    "message": "The resource does not exist.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A domain invariant or version check failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VERSION_CONFLICT",
+                    "message": "The resource was changed by another request.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applications/{applicationId}/decision": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Accept or reject a pending application atomically",
+        "tags": [
+          "Applications"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "in": "path",
+            "name": "applicationId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "decision": "ACCEPTED",
+                "note": "Strong fit for the project."
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "decision": {
+                    "type": "string",
+                    "enum": [
+                      "ACCEPTED",
+                      "REJECTED"
+                    ]
+                  },
+                  "note": {
+                    "type": "string",
+                    "maxLength": 2000
+                  }
+                },
+                "required": [
+                  "decision"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The operation completed successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "result": "See the named resource schema in the response."
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DomainSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or invalid.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_UNAUTHORIZED",
+                    "message": "Authentication is required.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the required permission.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_FORBIDDEN",
+                    "message": "You do not have permission.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "RESOURCE_NOT_FOUND",
+                    "message": "The resource does not exist.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A domain invariant or version check failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VERSION_CONFLICT",
+                    "message": "The resource was changed by another request.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/sprints": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Create a sprint",
+        "tags": [
+          "Workspace"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "in": "path",
+            "name": "projectId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "endsOn": "2026-09-07",
+                "name": "Sprint 1",
+                "startsOn": "2026-09-01"
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "endsOn": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "goal": {
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 120
+                  },
+                  "startsOn": {
+                    "type": "string",
+                    "format": "date"
+                  }
+                },
+                "required": [
+                  "endsOn",
+                  "name",
+                  "startsOn"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The operation completed successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "result": "See the named resource schema in the response."
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DomainSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or invalid.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_UNAUTHORIZED",
+                    "message": "Authentication is required.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the required permission.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_FORBIDDEN",
+                    "message": "You do not have permission.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "RESOURCE_NOT_FOUND",
+                    "message": "The resource does not exist.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A domain invariant or version check failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VERSION_CONFLICT",
+                    "message": "The resource was changed by another request.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "List project sprints",
+        "tags": [
+          "Workspace"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "in": "path",
+            "name": "projectId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The operation completed successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "result": "See the named resource schema in the response."
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DomainSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or invalid.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_UNAUTHORIZED",
+                    "message": "Authentication is required.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the required permission.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_FORBIDDEN",
+                    "message": "You do not have permission.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "RESOURCE_NOT_FOUND",
+                    "message": "The resource does not exist.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A domain invariant or version check failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VERSION_CONFLICT",
+                    "message": "The resource was changed by another request.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/tasks": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Create a project task",
+        "tags": [
+          "Workspace"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "in": "path",
+            "name": "projectId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "assigneeIds": [],
+                "priority": "HIGH",
+                "title": "Build project discovery page"
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "assigneeIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "maxItems": 30,
+                    "default": []
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 10000
+                  },
+                  "dueAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "position": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 0
+                  },
+                  "priority": {
+                    "type": "string",
+                    "enum": [
+                      "LOW",
+                      "MEDIUM",
+                      "HIGH",
+                      "URGENT"
+                    ],
+                    "default": "MEDIUM"
+                  },
+                  "sprintId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 180
+                  }
+                },
+                "required": [
+                  "title"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The operation completed successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "result": "See the named resource schema in the response."
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DomainSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or invalid.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_UNAUTHORIZED",
+                    "message": "Authentication is required.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the required permission.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_FORBIDDEN",
+                    "message": "You do not have permission.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "RESOURCE_NOT_FOUND",
+                    "message": "The resource does not exist.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A domain invariant or version check failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VERSION_CONFLICT",
+                    "message": "The resource was changed by another request.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "List project tasks",
+        "tags": [
+          "Workspace"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "in": "path",
+            "name": "projectId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The operation completed successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "result": "See the named resource schema in the response."
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DomainSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or invalid.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_UNAUTHORIZED",
+                    "message": "Authentication is required.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the required permission.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_FORBIDDEN",
+                    "message": "You do not have permission.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "RESOURCE_NOT_FOUND",
+                    "message": "The resource does not exist.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A domain invariant or version check failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VERSION_CONFLICT",
+                    "message": "The resource was changed by another request.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{taskId}": {
+      "patch": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Update a task with optimistic concurrency",
+        "tags": [
+          "Workspace"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "in": "path",
+            "name": "taskId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "status": "IN_PROGRESS",
+                "version": 1
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "assigneeIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "maxItems": 30
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 10000
+                  },
+                  "dueAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "position": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "priority": {
+                    "type": "string",
+                    "enum": [
+                      "LOW",
+                      "MEDIUM",
+                      "HIGH",
+                      "URGENT"
+                    ]
+                  },
+                  "sprintId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "TODO",
+                      "IN_PROGRESS",
+                      "REVIEW",
+                      "DONE"
+                    ]
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 180
+                  },
+                  "version": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The operation completed successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "result": "See the named resource schema in the response."
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DomainSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or invalid.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_UNAUTHORIZED",
+                    "message": "Authentication is required.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the required permission.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_FORBIDDEN",
+                    "message": "You do not have permission.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "RESOURCE_NOT_FOUND",
+                    "message": "The resource does not exist.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A domain invariant or version check failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VERSION_CONFLICT",
+                    "message": "The resource was changed by another request.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{id}/status": {
+      "patch": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Suspend or restore a user",
+        "tags": [
+          "Administration"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "in": "path",
+            "name": "id"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "status": "SUSPENDED"
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "ACTIVE",
+                      "SUSPENDED"
+                    ]
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The operation completed successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "result": "See the named resource schema in the response."
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DomainSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or invalid.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_UNAUTHORIZED",
+                    "message": "Authentication is required.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the required permission.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_FORBIDDEN",
+                    "message": "You do not have permission.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "RESOURCE_NOT_FOUND",
+                    "message": "The resource does not exist.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A domain invariant or version check failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VERSION_CONFLICT",
+                    "message": "The resource was changed by another request.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/audit-logs": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "List immutable audit events",
+        "tags": [
+          "Administration"
+        ],
+        "responses": {
+          "200": {
+            "description": "The operation completed successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "result": "See the named resource schema in the response."
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DomainSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or invalid.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_UNAUTHORIZED",
+                    "message": "Authentication is required.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the required permission.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_FORBIDDEN",
+                    "message": "You do not have permission.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "RESOURCE_NOT_FOUND",
+                    "message": "The resource does not exist.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A domain invariant or version check failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VERSION_CONFLICT",
+                    "message": "The resource was changed by another request.",
                     "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
                   }
                 },

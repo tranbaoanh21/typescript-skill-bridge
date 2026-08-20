@@ -1,6 +1,6 @@
 # Database foundation
 
-Phase 3 establishes the PostgreSQL source of truth for authentication, profiles, skills, projects, applications, and memberships.
+Phase 3 establishes the PostgreSQL foundation; Phase 6 extends the source of truth with sprints, tasks, assignees, task activity, and immutable audit events.
 
 ## Baseline
 
@@ -84,6 +84,10 @@ Integration tests refuse to run unless `TEST_DATABASE_URL` points to a database 
 | Owner is inserted and cannot be removed/demoted    | PostgreSQL triggers               |
 | Owner transfer                                     | Disallowed by trigger for MVP     |
 | Capacity during concurrent application acceptance  | Phase 6 transaction plus row lock |
+| Sprint dates and optimistic versions               | `CHECK`                           |
+| Task sprint belongs to the same project            | Composite foreign key             |
+| Task assignee belongs to the same project          | Composite foreign key             |
+| Audit records cannot be updated or deleted         | PostgreSQL trigger                |
 
 Cross-row capacity is deliberately not implemented as a `CHECK`: PostgreSQL checks are intended for values in the current row, while concurrent capacity requires a transaction that locks the project/application state.
 

@@ -7,6 +7,9 @@ import {
   projectRequiredSkills,
   projects,
   skills,
+  sprints,
+  taskAssignees,
+  tasks,
   users,
   userSkills,
 } from './schema.js';
@@ -20,6 +23,8 @@ const seedIds = {
   project: '00000000-0000-4000-8000-000000000201',
   application: '00000000-0000-4000-8000-000000000301',
   portfolio: '00000000-0000-4000-8000-000000000401',
+  sprint: '00000000-0000-4000-8000-000000000501',
+  task: '00000000-0000-4000-8000-000000000601',
 } as const;
 
 const disabledSeedPasswordHash = '!seed-account-login-disabled!';
@@ -166,6 +171,41 @@ export const seedDatabase = async (database: DatabaseClient) => {
         userId: seedIds.applicant,
         projectRole: 'MEMBER',
         sourceApplicationId: seedIds.application,
+      })
+      .onConflictDoNothing();
+
+    await transaction
+      .insert(sprints)
+      .values({
+        endsOn: '2026-09-07',
+        goal: 'Deliver the first usable project discovery and application flow.',
+        id: seedIds.sprint,
+        name: 'MVP Sprint 1',
+        projectId: seedIds.project,
+        startsOn: '2026-09-01',
+      })
+      .onConflictDoNothing();
+
+    await transaction
+      .insert(tasks)
+      .values({
+        createdBy: seedIds.owner,
+        description: 'Implement responsive cards, search, and loading/error states.',
+        id: seedIds.task,
+        position: 0,
+        priority: 'HIGH',
+        projectId: seedIds.project,
+        sprintId: seedIds.sprint,
+        title: 'Build project discovery page',
+      })
+      .onConflictDoNothing();
+
+    await transaction
+      .insert(taskAssignees)
+      .values({
+        projectId: seedIds.project,
+        taskId: seedIds.task,
+        userId: seedIds.applicant,
       })
       .onConflictDoNothing();
   });

@@ -2,9 +2,11 @@ import { sql } from 'drizzle-orm';
 import {
   AnyPgColumn,
   check,
+  date,
   foreignKey,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   primaryKey,
@@ -46,6 +48,9 @@ export const applicationStatus = pgEnum('application_status', [
   'REJECTED',
 ]);
 export const projectRole = pgEnum('project_role', ['OWNER', 'LEADER', 'MEMBER']);
+export const sprintStatus = pgEnum('sprint_status', ['PLANNED', 'ACTIVE', 'COMPLETED']);
+export const taskStatus = pgEnum('task_status', ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE']);
+export const taskPriority = pgEnum('task_priority', ['LOW', 'MEDIUM', 'HIGH', 'URGENT']);
 
 export const users = pgTable(
   'users',
@@ -302,9 +307,132 @@ export const projectMembers = pgTable(
   ],
 );
 
+export const sprints = pgTable(
+  'sprints',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    projectId: uuid('project_id')
+      .notNull()
+      .references(() => projects.id, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 120 }).notNull(),
+    goal: text('goal'),
+    startsOn: date('starts_on', { mode: 'string' }).notNull(),
+    endsOn: date('ends_on', { mode: 'string' }).notNull(),
+    status: sprintStatus('status').default('PLANNED').notNull(),
+    version: integer('version').default(1).notNull(),
+    ...timestamps(),
+  },
+  (table) => [
+    unique('sprints_identity_unique').on(table.id, table.projectId),
+    index('sprints_project_status_idx').on(table.projectId, table.status),
+    check('sprints_name_not_blank_check', sql`length(btrim(${table.name})) > 0`),
+    check('sprints_dates_check', sql`${table.startsOn} <= ${table.endsOn}`),
+    check('sprints_version_check', sql`${table.version} > 0`),
+  ],
+);
+
+export const tasks = pgTable(
+  'tasks',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    projectId: uuid('project_id')
+      .notNull()
+      .references(() => projects.id, { onDelete: 'cascade' }),
+    sprintId: uuid('sprint_id'),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    title: varchar('title', { length: 180 }).notNull(),
+    description: text('description'),
+    status: taskStatus('status').default('TODO').notNull(),
+    priority: taskPriority('priority').default('MEDIUM').notNull(),
+    position: integer('position').default(0).notNull(),
+    dueAt: timestamp('due_at', { mode: 'date', withTimezone: true }),
+    version: integer('version').default(1).notNull(),
+    ...timestamps(),
+  },
+  (table) => [
+    unique('tasks_identity_unique').on(table.id, table.projectId),
+    foreignKey({
+      name: 'tasks_sprint_project_fk',
+      columns: [table.sprintId, table.projectId],
+      foreignColumns: [sprints.id, sprints.projectId],
+    }).onDelete('restrict'),
+    index('tasks_project_board_idx').on(table.projectId, table.status, table.position),
+    index('tasks_sprint_idx').on(table.sprintId),
+    check('tasks_title_not_blank_check', sql`length(btrim(${table.title})) > 0`),
+    check('tasks_position_check', sql`${table.position} >= 0`),
+    check('tasks_version_check', sql`${table.version} > 0`),
+  ],
+);
+
+export const taskAssignees = pgTable(
+  'task_assignees',
+  {
+    taskId: uuid('task_id').notNull(),
+    projectId: uuid('project_id').notNull(),
+    userId: uuid('user_id').notNull(),
+    assignedAt: timestamp('assigned_at', { mode: 'date', withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ name: 'task_assignees_pk', columns: [table.taskId, table.userId] }),
+    foreignKey({
+      name: 'task_assignees_task_identity_fk',
+      columns: [table.taskId, table.projectId],
+      foreignColumns: [tasks.id, tasks.projectId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'task_assignees_member_identity_fk',
+      columns: [table.projectId, table.userId],
+      foreignColumns: [projectMembers.projectId, projectMembers.userId],
+    }).onDelete('cascade'),
+    index('task_assignees_user_idx').on(table.userId),
+  ],
+);
+
+export const taskActivities = pgTable(
+  'task_activities',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    taskId: uuid('task_id')
+      .notNull()
+      .references(() => tasks.id, { onDelete: 'cascade' }),
+    actorId: uuid('actor_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    action: varchar('action', { length: 80 }).notNull(),
+    before: jsonb('before'),
+    after: jsonb('after'),
+    createdAt: timestamp('created_at', { mode: 'date', withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index('task_activities_task_created_idx').on(table.taskId, table.createdAt)],
+);
+
+export const auditLogs = pgTable(
+  'audit_logs',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    actorId: uuid('actor_id'),
+    action: varchar('action', { length: 120 }).notNull(),
+    targetType: varchar('target_type', { length: 80 }).notNull(),
+    targetId: uuid('target_id'),
+    requestId: varchar('request_id', { length: 100 }),
+    metadata: jsonb('metadata'),
+    createdAt: timestamp('created_at', { mode: 'date', withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index('audit_logs_actor_created_idx').on(table.actorId, table.createdAt),
+    index('audit_logs_target_idx').on(table.targetType, table.targetId, table.createdAt),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Project = typeof projects.$inferSelect;
 export type NewProject = typeof projects.$inferInsert;
 export type ProjectApplication = typeof projectApplications.$inferSelect;
 export type NewProjectApplication = typeof projectApplications.$inferInsert;
+export type Sprint = typeof sprints.$inferSelect;
+export type Task = typeof tasks.$inferSelect;

@@ -12,7 +12,7 @@
     "postman:test": "tsx scripts/run-postman.ts",
     "start": "node dist/server.js",
     "test": "vitest run --exclude 'tests/**/*.integration.test.ts'",
-    "test:integration": "vitest run tests/auth.integration.test.ts",
+    "test:integration": "vitest run tests/auth.integration.test.ts tests/domain.integration.test.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

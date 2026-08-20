@@ -7,6 +7,7 @@ import { readEnvironment } from './config/env.js';
 import { AuthRepository } from './modules/auth/auth.repository.js';
 import { AuthService } from './modules/auth/auth.service.js';
 import { TokenService } from './modules/auth/token.service.js';
+import { DomainService } from './modules/domain/domain.service.js';
 
 const environment = readEnvironment();
 const { database, pool } = createDatabaseClient(environment);
@@ -24,6 +25,7 @@ const app = createApp({
     await pool.query('SELECT 1');
   },
   corsOrigin: environment.WEB_ORIGIN,
+  domain: { service: new DomainService(pool), tokenService },
   enableApiDocs: environment.ENABLE_API_DOCS,
 });
 const server = createServer(app);

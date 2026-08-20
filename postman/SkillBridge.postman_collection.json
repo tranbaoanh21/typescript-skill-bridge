@@ -283,10 +283,280 @@
           }
         }
       ]
+    },
+    {
+      "name": "Core - Skill catalog",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/skills" },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('lists shared skills', () => {",
+              "  pm.response.to.have.status(200);",
+              "  const skill = pm.response.json().data.skills.find(item => item.slug === 'domain-integration');",
+              "  pm.expect(skill).to.be.an('object');",
+              "  pm.collectionVariables.set('skillId', skill.id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Core - Update profile skills",
+      "request": {
+        "method": "PUT",
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+        },
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"skills\": [{ \"skillId\": \"{{skillId}}\", \"level\": 4 }]\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/profile/skills"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": ["pm.test('updates profile skills', () => pm.response.to.have.status(200));"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Core - Create project",
+      "request": {
+        "method": "POST",
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+        },
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"capacity\": 3,\n  \"description\": \"Postman verifies the complete SkillBridge project workflow against PostgreSQL.\",\n  \"requiredSkills\": [{ \"skillId\": \"{{skillId}}\", \"desiredLevel\": 3, \"positions\": 1 }],\n  \"slug\": \"{{projectSlug}}\",\n  \"title\": \"Postman Core Project\"\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/projects"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('creates owner project and membership', () => {",
+              "  pm.response.to.have.status(201);",
+              "  const project = pm.response.json().data.project;",
+              "  pm.collectionVariables.set('projectId', project.id);",
+              "  pm.collectionVariables.set('projectVersion', project.version);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Core - Publish project",
+      "request": {
+        "method": "POST",
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+        },
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"action\": \"PUBLISH\",\n  \"version\": {{projectVersion}}\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/projects/{{projectId}}/transitions"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('publishes project', () => { pm.response.to.have.status(200); pm.expect(pm.response.json().data.project.status).to.eql('RECRUITING'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Core - Register applicant",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"displayName\": \"Postman Applicant\",\n  \"email\": \"{{applicantEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/auth/register"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('creates applicant account', () => {",
+              "  pm.response.to.have.status(201);",
+              "  const data = pm.response.json().data;",
+              "  pm.collectionVariables.set('applicantAccessToken', data.tokens.accessToken);",
+              "  pm.collectionVariables.set('applicantId', data.user.id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Core - Submit application",
+      "request": {
+        "method": "POST",
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{applicantAccessToken}}", "type": "string" }]
+        },
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"coverLetter\": \"I can contribute TypeScript and PostgreSQL experience to this project.\"\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/projects/{{projectId}}/applications"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('submits pending application', () => {",
+              "  pm.response.to.have.status(201);",
+              "  pm.collectionVariables.set('applicationId', pm.response.json().data.application.id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Core - Accept application",
+      "request": {
+        "method": "POST",
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+        },
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"decision\": \"ACCEPTED\",\n  \"note\": \"Accepted by executable Postman contract.\"\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/applications/{{applicationId}}/decision"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('accepts application atomically', () => { pm.response.to.have.status(200); pm.expect(pm.response.json().data.application.status).to.eql('ACCEPTED'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Core - Create sprint",
+      "request": {
+        "method": "POST",
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+        },
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Sprint 1\",\n  \"startsOn\": \"2026-09-01\",\n  \"endsOn\": \"2026-09-07\"\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/projects/{{projectId}}/sprints"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('creates sprint', () => {",
+              "  pm.response.to.have.status(201);",
+              "  pm.collectionVariables.set('sprintId', pm.response.json().data.sprint.id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Core - Create assigned task",
+      "request": {
+        "method": "POST",
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+        },
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Build project discovery page\",\n  \"priority\": \"HIGH\",\n  \"sprintId\": \"{{sprintId}}\",\n  \"assigneeIds\": [\"{{applicantId}}\"]\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/projects/{{projectId}}/tasks"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('creates task for a project member', () => {",
+              "  pm.response.to.have.status(201);",
+              "  const task = pm.response.json().data.task;",
+              "  pm.collectionVariables.set('taskId', task.id);",
+              "  pm.collectionVariables.set('taskVersion', task.version);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Core - Update task as member",
+      "request": {
+        "method": "PATCH",
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{applicantAccessToken}}", "type": "string" }]
+        },
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"IN_PROGRESS\",\n  \"version\": {{taskVersion}}\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/tasks/{{taskId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('updates task with optimistic version', () => { pm.response.to.have.status(200); pm.expect(pm.response.json().data.task.version).to.eql(2); });"
+            ]
+          }
+        }
+      ]
     }
   ],
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "applicantEmail", "value": "postman-applicant-local@example.com" },
+    { "key": "projectSlug", "value": "postman-local-project" },
     { "key": "testEmail", "value": "postman-local@example.com" },
     { "key": "testPassword", "value": "correct-horse-battery-staple", "type": "secret" },
     { "key": "accessToken", "value": "", "type": "secret" },

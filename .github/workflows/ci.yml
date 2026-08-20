@@ -97,7 +97,7 @@ jobs:
       - name: Verify idempotent seed
         run: npm run db:seed && npm run db:seed
 
-      - name: Test database and authentication
+      - name: Test database, authentication, and core domain
         run: npm run test:integration
 
       - name: Run Postman collection with Newman
