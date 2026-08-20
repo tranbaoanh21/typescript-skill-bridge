@@ -3,6 +3,7 @@ import express from 'express';
 import helmet from 'helmet';
 import { pinoHttp } from 'pino-http';
 
+import { createDocsRouter } from './docs/docs.routes.js';
 import { createAuthRouter } from './modules/auth/auth.routes.js';
 import type { AuthServiceContract } from './modules/auth/auth.types.js';
 import type { TokenService } from './modules/auth/token.service.js';
@@ -17,6 +18,7 @@ export interface AppOptions {
   };
   checkReadiness?: ReadinessCheck;
   corsOrigin: string;
+  enableApiDocs?: boolean;
   enableRequestLogging?: boolean;
 }
 
@@ -24,6 +26,7 @@ export const createApp = ({
   auth,
   checkReadiness = async () => undefined,
   corsOrigin,
+  enableApiDocs = false,
   enableRequestLogging = true,
 }: AppOptions) => {
   const app = express();
@@ -49,6 +52,10 @@ export const createApp = ({
   app.use(express.json({ limit: '1mb' }));
 
   app.use('/health', createHealthRouter(checkReadiness));
+
+  if (enableApiDocs) {
+    app.use('/docs', createDocsRouter());
+  }
 
   if (auth) {
     app.use('/api/v1/auth', createAuthRouter(auth.service, auth.tokenService));

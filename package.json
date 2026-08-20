@@ -23,6 +23,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "turbo lint",
+    "openapi:check": "npm run openapi:check --workspace @skillbridge/api",
+    "openapi:generate": "npm run openapi:generate --workspace @skillbridge/api",
+    "postman:test": "npm run postman:test --workspace @skillbridge/api",
     "test": "turbo test",
     "test:integration": "turbo test:integration",
     "typecheck": "turbo typecheck"

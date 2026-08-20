@@ -821,6 +821,8 @@ Thời lượng chỉ là ước lượng học tập. Mỗi phase kết thúc b
 
 ### Phase 5 — OpenAPI, Swagger UI và Postman (3–4 ngày)
 
+**Trạng thái:** Hoàn tất ngày 20/08/2026; OpenAPI 3.1 được sinh từ Zod, Swagger UI có feature flag, collection Postman chạy bằng Newman trong CI.
+
 **Mục tiêu**
 
 - API contract trở thành artifact có thể dùng và kiểm thử.

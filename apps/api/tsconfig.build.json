@@ -7,5 +7,5 @@
     "rootDir": "src",
     "sourceMap": true
   },
-  "exclude": ["tests/**/*.ts", "vitest.config.ts"]
+  "exclude": ["scripts/**/*.ts", "tests/**/*.ts", "vitest.config.ts"]
 }

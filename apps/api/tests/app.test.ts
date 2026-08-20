@@ -72,4 +72,24 @@ describe('SkillBridge API', () => {
       status: 'unavailable',
     });
   });
+
+  it('serves Swagger UI and OpenAPI JSON only when documentation is enabled', async () => {
+    const documentedApp = createApp({
+      corsOrigin: 'http://localhost:5173',
+      enableApiDocs: true,
+      enableRequestLogging: false,
+    });
+    const specification = await request(documentedApp).get('/docs/openapi.json');
+    const swaggerUi = await request(documentedApp).get('/docs/');
+    const disabled = await request(app).get('/docs/openapi.json');
+
+    expect(specification.status).toBe(200);
+    expect(specification.body).toMatchObject({
+      info: { title: 'HCMUT SkillBridge API' },
+      openapi: '3.1.0',
+    });
+    expect(swaggerUi.status).toBe(200);
+    expect(swaggerUi.text).toContain('<title>HCMUT SkillBridge API</title>');
+    expect(disabled.status).toBe(404);
+  });
 });

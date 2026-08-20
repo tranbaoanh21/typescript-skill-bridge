@@ -1,6 +1,6 @@
 # Authentication security model
 
-Phase 4 implements production-shaped authentication for web, mobile, and API-testing clients. OpenAPI and Postman artifacts are intentionally handled in Phase 5.
+Phase 4 implements production-shaped authentication for web, mobile, and API-testing clients. Phase 5 documents and continuously exercises this contract through OpenAPI, Swagger UI, Postman, and Newman.
 
 ## Endpoints
 

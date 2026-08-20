@@ -1,0 +1,296 @@
+{
+  "info": {
+    "_postman_id": "2f398a8a-c82c-41d4-acd1-38bb3bdf507c",
+    "name": "HCMUT SkillBridge API",
+    "description": "Executable Phase 5 contract checks for health, API documentation, authentication, token rotation, reuse detection, and logout.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Readiness",
+      "request": { "method": "GET", "url": "{{baseUrl}}/health/ready" },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('database is ready', () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().dependencies.database).to.eql('ready');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "OpenAPI JSON",
+      "request": { "method": "GET", "url": "{{baseUrl}}/docs/openapi.json" },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('serves OpenAPI 3.1', () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().openapi).to.eql('3.1.0');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Register",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"displayName\": \"Postman Contract\",\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/auth/register"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('creates account and token pair', () => {",
+              "  pm.response.to.have.status(201);",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.data.user.email).to.eql(pm.variables.get('testEmail'));",
+              "  pm.expect(body.data.tokens.accessToken).to.be.a('string');",
+              "  pm.expect(body.data.tokens.refreshToken).to.be.a('string');",
+              "  pm.collectionVariables.set('accessToken', body.data.tokens.accessToken);",
+              "  pm.collectionVariables.set('refreshToken', body.data.tokens.refreshToken);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Duplicate registration error",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"displayName\": \"Postman Contract\",\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/auth/register"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('returns stable conflict error', () => {",
+              "  pm.response.to.have.status(409);",
+              "  const error = pm.response.json().error;",
+              "  pm.expect(error.code).to.eql('AUTH_EMAIL_ALREADY_EXISTS');",
+              "  pm.expect(error.requestId).to.be.a('string');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Invalid login error",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"definitely-not-the-password\"\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/auth/login"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('rejects invalid credentials safely', () => {",
+              "  pm.response.to.have.status(401);",
+              "  pm.expect(pm.response.json().error.code).to.eql('AUTH_INVALID_CREDENTIALS');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/auth/login"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('creates a login session', () => {",
+              "  pm.response.to.have.status(200);",
+              "  const tokens = pm.response.json().data.tokens;",
+              "  pm.collectionVariables.set('accessToken', tokens.accessToken);",
+              "  pm.collectionVariables.set('refreshToken', tokens.refreshToken);",
+              "  pm.collectionVariables.set('originalRefreshToken', tokens.refreshToken);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Current user",
+      "request": {
+        "method": "GET",
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+        },
+        "url": "{{baseUrl}}/api/v1/auth/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('accepts signed bearer token', () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().data.user.email).to.eql(pm.variables.get('testEmail'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rotate refresh token",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" },
+        "url": "{{baseUrl}}/api/v1/auth/refresh"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('rotates refresh token', () => {",
+              "  pm.response.to.have.status(200);",
+              "  const replacement = pm.response.json().data.tokens.refreshToken;",
+              "  pm.expect(replacement).not.to.eql(pm.collectionVariables.get('originalRefreshToken'));",
+              "  pm.collectionVariables.set('refreshToken', replacement);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Detect refresh token reuse",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{originalRefreshToken}}\"\n}" },
+        "url": "{{baseUrl}}/api/v1/auth/refresh"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('revokes token family on reuse', () => {",
+              "  pm.response.to.have.status(401);",
+              "  pm.expect(pm.response.json().error.code).to.eql('AUTH_REFRESH_TOKEN_REUSED');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Login for logout",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/auth/login"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('creates session used by logout scenario', () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.collectionVariables.set('refreshToken', pm.response.json().data.tokens.refreshToken);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Logout",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" },
+        "url": "{{baseUrl}}/api/v1/auth/logout"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": ["pm.test('revokes session', () => pm.response.to.have.status(204));"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rejected refresh after logout",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" },
+        "url": "{{baseUrl}}/api/v1/auth/refresh"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('cannot refresh a logged-out session', () => {",
+              "  pm.response.to.have.status(401);",
+              "  pm.expect(pm.response.json().error.code).to.eql('AUTH_REFRESH_TOKEN_INVALID');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "testEmail", "value": "postman-local@example.com" },
+    { "key": "testPassword", "value": "correct-horse-battery-staple", "type": "secret" },
+    { "key": "accessToken", "value": "", "type": "secret" },
+    { "key": "refreshToken", "value": "", "type": "secret" },
+    { "key": "originalRefreshToken", "value": "", "type": "secret" }
+  ]
+}
