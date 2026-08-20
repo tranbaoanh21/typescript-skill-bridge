@@ -32,3 +32,32 @@ The project is currently in product discovery and software architecture planning
 - Add infrastructure only when it solves a documented product or learning need.
 
 Detailed requirements, architecture diagrams, phase gates, and acceptance criteria are maintained in [PROJECT_PLAN.md](PROJECT_PLAN.md).
+
+## Local development
+
+Requirements:
+
+- Node.js `24.19.0` (see `.nvmrc`)
+- npm `11.17.0`
+
+Install dependencies and run both applications:
+
+```bash
+npm install
+npm run dev
+```
+
+The initial development endpoints are:
+
+- Web: `http://localhost:5173`
+- API health: `http://localhost:3000/health`
+
+Run the complete local quality gate:
+
+```bash
+npm run format:check
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```

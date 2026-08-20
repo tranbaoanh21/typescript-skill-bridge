@@ -1,0 +1,27 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Geist', 'SF Pro Text', 'Segoe UI', sans-serif;
+  --color-brand-50: oklch(97% 0.02 191);
+  --color-brand-500: oklch(67% 0.14 184);
+  --color-brand-700: oklch(50% 0.11 184);
+}
+
+:root {
+  color: #172121;
+  background: #f7faf9;
+  font-family: var(--font-sans);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100dvh;
+  margin: 0;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
