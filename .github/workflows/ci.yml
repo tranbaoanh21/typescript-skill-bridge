@@ -94,5 +94,5 @@ jobs:
       - name: Verify idempotent seed
         run: npm run db:seed && npm run db:seed
 
-      - name: Test database invariants
+      - name: Test database and authentication
         run: npm run test:integration

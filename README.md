@@ -52,6 +52,8 @@ The initial development endpoints are:
 
 - Web: `http://localhost:5173`
 - API health: `http://localhost:3000/health`
+- API readiness: `http://localhost:3000/health/ready`
+- Authentication API: `http://localhost:3000/api/v1/auth`
 
 Run the complete local quality gate:
 
@@ -86,3 +88,9 @@ TEST_DATABASE_URL=postgresql://skillbridge:skillbridge@localhost:5434/skillbridg
 ```
 
 Postgres.app and pgAdmin 4 setup, the physical ERD, constraint ownership, and migration policy are documented in [docs/database/README.md](docs/database/README.md).
+
+## Authentication API
+
+Phase 4 provides register, login, refresh-token rotation, logout, current-user access, request IDs, consistent errors, and global-role middleware. Configure `apps/api/.env` from `apps/api/.env.example` before starting the API.
+
+The security model and endpoint contract are documented in [docs/security/authentication.md](docs/security/authentication.md). OpenAPI and the Postman collection are delivered in Phase 5.

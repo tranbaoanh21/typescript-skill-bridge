@@ -1,6 +1,6 @@
 # HCMUT SkillBridge — Ultimate Full-stack Project Plan
 
-> Trạng thái: **IN PROGRESS — monorepo và PostgreSQL foundation đã hoàn tất**
+> Trạng thái: **IN PROGRESS — monorepo, PostgreSQL và API authentication foundation đã hoàn tất**
 > Đối tượng học: sinh viên năm 2 HCMUT
 > Mục tiêu: xây dựng một sản phẩm đủ chiều sâu để học Công nghệ phần mềm, full-stack TypeScript, cơ sở dữ liệu, realtime, message queue, DevOps, mobile và nền tảng AWS.
 > Repository: [`tranbaoanh21/typescript-skill-bridge`](https://github.com/tranbaoanh21/typescript-skill-bridge)
@@ -794,6 +794,8 @@ Thời lượng chỉ là ước lượng học tập. Mỗi phase kết thúc b
 - ERD khớp schema thực tế.
 
 ### Phase 4 — Express API foundation và authentication (5–7 ngày)
+
+**Trạng thái:** Hoàn tất ngày 20/08/2026; auth integration tests, token rotation/reuse detection, RBAC middleware và runtime health checks đã được kiểm chứng.
 
 **Mục tiêu**
 
