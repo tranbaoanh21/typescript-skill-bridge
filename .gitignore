@@ -8,6 +8,7 @@ coverage/
 .turbo/
 .vite/
 .cache/
+.npm-cache/
 
 # TypeScript
 *.tsbuildinfo
