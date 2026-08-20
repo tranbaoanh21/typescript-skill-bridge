@@ -8,13 +8,17 @@
     "dev": "tsx watch src/server.ts",
     "lint": "eslint src tests",
     "start": "node dist/server.js",
-    "test": "vitest run",
+    "test": "vitest run --exclude 'tests/**/*.integration.test.ts'",
+    "test:integration": "vitest run tests/auth.integration.test.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@skillbridge/database": "0.1.0",
+    "argon2": "^0.45.1",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "helmet": "^8.3.0",
+    "jose": "^6.2.9",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
     "zod": "^4.4.3"

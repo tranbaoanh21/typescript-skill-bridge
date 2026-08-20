@@ -1,10 +1,30 @@
 import { createServer } from 'node:http';
 
+import { createDatabaseClient } from '@skillbridge/database';
+
 import { createApp } from './app.js';
 import { readEnvironment } from './config/env.js';
+import { AuthRepository } from './modules/auth/auth.repository.js';
+import { AuthService } from './modules/auth/auth.service.js';
+import { TokenService } from './modules/auth/token.service.js';
 
 const environment = readEnvironment();
-const app = createApp({ corsOrigin: environment.WEB_ORIGIN });
+const { database, pool } = createDatabaseClient(environment);
+const tokenService = new TokenService({
+  accessTokenTtlSeconds: environment.JWT_ACCESS_TTL_SECONDS,
+  audience: environment.AUTH_TOKEN_AUDIENCE,
+  issuer: environment.AUTH_TOKEN_ISSUER,
+  refreshTokenTtlDays: environment.REFRESH_TOKEN_TTL_DAYS,
+  secret: environment.JWT_ACCESS_SECRET,
+});
+const authService = new AuthService(new AuthRepository(database), tokenService);
+const app = createApp({
+  auth: { service: authService, tokenService },
+  checkReadiness: async () => {
+    await pool.query('SELECT 1');
+  },
+  corsOrigin: environment.WEB_ORIGIN,
+});
 const server = createServer(app);
 
 server.listen(environment.PORT, () => {
@@ -20,8 +40,9 @@ const shutdown = (signal: NodeJS.Signals) => {
   }, 10_000);
   forceShutdownTimer.unref();
 
-  server.close((error) => {
+  server.close(async (error) => {
     clearTimeout(forceShutdownTimer);
+    await pool.end();
 
     if (error) {
       console.error(error);
