@@ -31,4 +31,4 @@ The project is currently in product discovery and software architecture planning
 - Deliver changes through focused pull requests with automated checks.
 - Add infrastructure only when it solves a documented product or learning need.
 
-Detailed requirements, architecture diagrams, phase gates, and acceptance criteria will be maintained in the project roadmap.
+Detailed requirements, architecture diagrams, phase gates, and acceptance criteria are maintained in [PROJECT_PLAN.md](PROJECT_PLAN.md).
