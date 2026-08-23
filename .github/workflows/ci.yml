@@ -69,6 +69,7 @@ jobs:
       DATABASE_DIRECT_URL: postgresql://skillbridge:skillbridge@localhost:5432/skillbridge_test
       E2E_DATABASE_URL: postgresql://skillbridge:skillbridge@localhost:5432/skillbridge_test
       REDIS_URL: redis://localhost:6379
+      RABBITMQ_URL: amqp://skillbridge:skillbridge@localhost:5672/skillbridge
       TEST_DATABASE_URL: postgresql://skillbridge:skillbridge@localhost:5432/skillbridge_test
       TURBO_TELEMETRY_DISABLED: 1
     services:
@@ -94,6 +95,19 @@ jobs:
           --health-interval 5s
           --health-timeout 3s
           --health-retries 10
+      rabbitmq:
+        image: rabbitmq:4-management-alpine
+        env:
+          RABBITMQ_DEFAULT_PASS: skillbridge
+          RABBITMQ_DEFAULT_USER: skillbridge
+          RABBITMQ_DEFAULT_VHOST: skillbridge
+        ports:
+          - 5672:5672
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 12
 
     steps:
       - name: Check out repository
@@ -143,6 +157,7 @@ jobs:
     timeout-minutes: 15
     env:
       DATABASE_URL: postgresql://skillbridge:skillbridge@127.0.0.1:5432/skillbridge_test
+      RABBITMQ_URL: amqp://skillbridge:skillbridge@127.0.0.1:5672/skillbridge
     services:
       postgres:
         image: postgres:18.4-alpine
@@ -157,6 +172,19 @@ jobs:
           --health-interval 5s
           --health-timeout 3s
           --health-retries 10
+      rabbitmq:
+        image: rabbitmq:4-management-alpine
+        env:
+          RABBITMQ_DEFAULT_PASS: skillbridge
+          RABBITMQ_DEFAULT_USER: skillbridge
+          RABBITMQ_DEFAULT_VHOST: skillbridge
+        ports:
+          - 5672:5672
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 12
 
     steps:
       - name: Check out repository
@@ -165,10 +193,15 @@ jobs:
       - name: Build production API image
         run: docker build --target runtime --file infrastructure/docker/Dockerfile.api --tag skillbridge-api:ci .
 
+      - name: Build production worker image
+        run: docker build --target worker-runtime --file infrastructure/docker/Dockerfile.api --tag skillbridge-worker:ci .
+
       - name: Verify production-only non-root runtime
         run: |
           test "$(docker image inspect skillbridge-api:ci --format '{{.Config.User}}')" = "node"
           docker run --rm skillbridge-api:ci node -e "for (const dependency of ['typescript', 'vitest', 'newman']) { try { require.resolve(dependency); process.exit(1); } catch {} }"
+          test "$(docker image inspect skillbridge-worker:ci --format '{{.Config.User}}')" = "node"
+          docker run --rm skillbridge-worker:ci node -e "for (const dependency of ['typescript', 'vitest', 'newman']) { try { require.resolve(dependency); process.exit(1); } catch {} }"
 
       - name: Apply migrations from immutable image
         run: docker run --rm --network host --env DATABASE_URL skillbridge-api:ci node packages/database/dist/cli/migrate.js
@@ -186,6 +219,14 @@ jobs:
             --env WEB_ORIGIN=http://localhost:4173 \
             skillbridge-api:ci
 
+      - name: Start worker image
+        run: |
+          docker run --detach --network host --name skillbridge-worker-ci \
+            --env DATABASE_URL \
+            --env RABBITMQ_URL \
+            --env WORKER_HEALTH_PORT=3001 \
+            skillbridge-worker:ci
+
       - name: Wait for container readiness
         run: |
           for attempt in {1..30}; do
@@ -197,6 +238,21 @@ jobs:
           docker logs skillbridge-api-ci
           exit 1
 
+      - name: Wait for worker readiness
+        run: |
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3001/health/ready; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs skillbridge-worker-ci
+          exit 1
+
       - name: Show API logs on failure
         if: failure()
         run: docker logs skillbridge-api-ci
+
+      - name: Show worker logs on failure
+        if: failure()
+        run: docker logs skillbridge-worker-ci

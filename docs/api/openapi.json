@@ -45,6 +45,10 @@
       "name": "Realtime"
     },
     {
+      "description": "Asynchronous in-app and email delivery records.",
+      "name": "Notifications"
+    },
+    {
       "description": "Global moderation and audit events.",
       "name": "Administration"
     }
@@ -3611,6 +3615,260 @@
             "required": false,
             "name": "limit",
             "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The operation completed successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "result": "See the named resource schema in the response."
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DomainSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or invalid.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_UNAUTHORIZED",
+                    "message": "Authentication is required.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the required permission.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_FORBIDDEN",
+                    "message": "You do not have permission.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "RESOURCE_NOT_FOUND",
+                    "message": "The resource does not exist.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A domain invariant or version check failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VERSION_CONFLICT",
+                    "message": "The resource was changed by another request.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "List notifications for the current user",
+        "tags": [
+          "Notifications"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 30
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The operation completed successfully.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "result": "See the named resource schema in the response."
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/DomainSuccessEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload validation failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "The request payload is invalid.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing or invalid.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_UNAUTHORIZED",
+                    "message": "Authentication is required.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller lacks the required permission.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "AUTH_FORBIDDEN",
+                    "message": "You do not have permission.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested resource was not found.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "RESOURCE_NOT_FOUND",
+                    "message": "The resource does not exist.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A domain invariant or version check failed.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "VERSION_CONFLICT",
+                    "message": "The resource was changed by another request.",
+                    "requestId": "7d3e11c2-d39a-4456-8d77-07145bb42fa8"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/{id}/read": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Mark one notification as read",
+        "tags": [
+          "Notifications"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "in": "path",
+            "name": "id"
           }
         ],
         "responses": {

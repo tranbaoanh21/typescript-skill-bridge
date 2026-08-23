@@ -1,6 +1,6 @@
 # Docker local runtime
 
-Phase 9 cung cấp một runtime gần production cho API và một local infrastructure stack có health checks. PostgreSQL vẫn là source of truth. API dùng Redis cho cache, rate limit, distributed presence và Socket.IO Pub/Sub; không có dữ liệu nghiệp vụ duy nhất nằm trong Redis. RabbitMQ được khởi động sẵn cho background worker Phase 12.
+Phase 9 cung cấp một runtime gần production cho API và một local infrastructure stack có health checks. PostgreSQL vẫn là source of truth. API dùng Redis cho cache, rate limit, distributed presence và Socket.IO Pub/Sub; không có dữ liệu nghiệp vụ duy nhất nằm trong Redis. Worker riêng dùng RabbitMQ để relay transactional outbox và tạo notification bất đồng bộ.
 
 ## Service topology
 
@@ -11,10 +11,15 @@ flowchart LR
     Migrate -->|exit 0| API
     Redis[(Redis)] -->|healthy| API
     Rabbit[(RabbitMQ)] -->|healthy| API
+    Rabbit -->|healthy| Worker[Worker container]
+    Migrate -->|exit 0| Worker
+    Worker --> PG
     TestPG[(PostgreSQL test\nprofile: test)] --> TestMigrate[Migration test job]
 ```
 
 Compose bảo đảm PostgreSQL healthy trước migration và chỉ start API sau khi migration exit `0`, Redis healthy và RabbitMQ healthy. API readiness tiếp tục query PostgreSQL thật.
+
+Worker chỉ start sau migration và RabbitMQ healthy. Worker readiness kiểm tra cả PostgreSQL lẫn RabbitMQ; process tách biệt nên restart worker không làm gián đoạn HTTP API.
 
 ## Quick start
 
@@ -41,6 +46,7 @@ Xem trạng thái và log:
 ```bash
 docker compose -f infrastructure/docker/compose.yaml ps -a
 docker compose -f infrastructure/docker/compose.yaml logs -f api
+docker compose -f infrastructure/docker/compose.yaml logs -f worker
 docker compose -f infrastructure/docker/compose.yaml logs migrate
 ```
 
@@ -82,6 +88,7 @@ Khởi động PostgreSQL test tạm thời trên cổng `5434`:
 npm run docker:test-db
 TEST_DATABASE_URL=postgresql://skillbridge:skillbridge@localhost:5434/skillbridge_test \
 REDIS_URL=redis://:skillbridge-redis@localhost:6379 \
+RABBITMQ_URL=amqp://skillbridge:skillbridge-rabbit@localhost:5672/skillbridge \
 npm run test:integration
 ```
 
@@ -97,7 +104,7 @@ Test service dùng `tmpfs`, vì vậy data biến mất khi container bị xóa.
 
 Runtime dùng Debian slim vì API có native `argon2`, chạy user `node` UID 1000, có built-in HTTP health check và không chứa source `.env`, TypeScript, Vitest hay Newman. Image ARM64 được đo ở khoảng 293 MB tại Phase 9; đây là baseline để theo dõi, không phải mục tiêu tối ưu bằng mọi giá.
 
-Worker chưa có nghiệp vụ ở Phase 9 nên chưa tạo một container placeholder. Phase 12 sẽ bổ sung worker multi-stage target từ code thật và tái sử dụng nguyên tắc production-only/non-root này.
+Worker có multi-stage target riêng, production dependencies riêng, chạy user `node` và chỉ chứa compiled code. API và worker chia sẻ contracts/database build artifacts nhưng có entrypoint và health check độc lập.
 
 ## Troubleshooting
 

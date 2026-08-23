@@ -24,6 +24,18 @@ x-api-environment: &api-environment
   REFRESH_TOKEN_TTL_DAYS: ${REFRESH_TOKEN_TTL_DAYS:-30}
   WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:5173}
 
+x-worker-environment: &worker-environment
+  DATABASE_POOL_MAX: ${DATABASE_POOL_MAX:-5}
+  DATABASE_URL: postgresql://${POSTGRES_USER:-skillbridge}:${POSTGRES_PASSWORD:-skillbridge}@postgres:5432/${POSTGRES_DB:-skillbridge}
+  NODE_ENV: production
+  OUTBOX_BATCH_SIZE: ${OUTBOX_BATCH_SIZE:-20}
+  OUTBOX_POLL_INTERVAL_MS: ${OUTBOX_POLL_INTERVAL_MS:-1000}
+  RABBITMQ_PREFETCH: ${RABBITMQ_PREFETCH:-10}
+  RABBITMQ_URL: amqp://${RABBITMQ_USER:-skillbridge}:${RABBITMQ_PASSWORD:-skillbridge-rabbit}@rabbitmq:5672/${RABBITMQ_VHOST:-skillbridge}
+  RETRY_DELAY_MS: ${RETRY_DELAY_MS:-5000}
+  RETRY_MAX_ATTEMPTS: ${RETRY_MAX_ATTEMPTS:-3}
+  WORKER_HEALTH_PORT: 3001
+
 services:
   postgres:
     image: postgres:18.4-alpine
@@ -164,6 +176,21 @@ services:
       rabbitmq:
         condition: service_healthy
       redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    image: skillbridge-worker:local
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.api
+      target: worker-runtime
+    init: true
+    environment: *worker-environment
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      rabbitmq:
         condition: service_healthy
     restart: unless-stopped
 

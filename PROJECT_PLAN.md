@@ -991,6 +991,8 @@ Thời lượng chỉ là ước lượng học tập. Mỗi phase kết thúc b
 
 ### Phase 12 — RabbitMQ và background worker (5–7 ngày)
 
+**Trạng thái:** Hoàn tất ngày 24/08/2026; transactional outbox cho `application.accepted`, confirm publisher, durable quorum topology, manual-ack notification worker, prefetch, idempotent inbox, retry backoff, DLQ, correlation ID, notification API và worker container đã được kiểm chứng.
+
 **Mục tiêu**
 
 - Tách durable asynchronous work khỏi request lifecycle.
