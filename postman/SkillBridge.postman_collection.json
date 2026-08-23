@@ -359,6 +359,32 @@
       ]
     },
     {
+      "name": "Core - Get managed draft project",
+      "request": {
+        "method": "GET",
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+        },
+        "url": "{{baseUrl}}/api/v1/projects/{{projectId}}/manage"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('loads an owned project before publication', () => {",
+              "  pm.response.to.have.status(200);",
+              "  const project = pm.response.json().data.project;",
+              "  pm.expect(project.status).to.eql('DRAFT');",
+              "  pm.expect(project.id).to.eql(pm.collectionVariables.get('projectId'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "Core - Publish project",
       "request": {
         "method": "POST",

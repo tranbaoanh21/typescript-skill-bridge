@@ -718,7 +718,7 @@ export class DomainService {
     }
   }
 
-  private async getProjectForManager(projectId: string, managerId: string) {
+  async getProjectForManager(projectId: string, managerId: string) {
     const result = await this.pool.query(
       `SELECT ${projectSelection}
        FROM projects p

@@ -1,6 +1,6 @@
 # HCMUT SkillBridge — Ultimate Full-stack Project Plan
 
-> Trạng thái: **IN PROGRESS — monorepo, PostgreSQL và API authentication foundation đã hoàn tất**
+> Trạng thái: **IN PROGRESS — requirements, database, API contracts, core domain và React web MVP đã hoàn tất**
 > Đối tượng học: sinh viên năm 2 HCMUT
 > Mục tiêu: xây dựng một sản phẩm đủ chiều sâu để học Công nghệ phần mềm, full-stack TypeScript, cơ sở dữ liệu, realtime, message queue, DevOps, mobile và nền tảng AWS.
 > Repository: [`tranbaoanh21/typescript-skill-bridge`](https://github.com/tranbaoanh21/typescript-skill-bridge)
@@ -51,14 +51,14 @@ Mỗi decision gate phải được chốt trước phase trực tiếp phụ th
 | ID | Quyết định | Đề xuất mặc định | Trạng thái |
 |---|---|---|---|
 | D0 | Chọn bài toán | HCMUT SkillBridge | Đã chốt 20/08/2026 |
-| D1 | UI agent skill | [`leonxlnx/taste-skill`](https://github.com/Leonxlnx/taste-skill), mặc định `design-taste-frontend` | Đã xác nhận nguồn; chờ chốt variant/pin |
+| D1 | UI agent skill | [`leonxlnx/taste-skill`](https://github.com/Leonxlnx/taste-skill), áp dụng design audit workflow | Đã áp dụng cho web MVP 24/08/2026 |
 | D2 | Phạm vi MVP | Profile + Project + Application + Team + Task | Đã chốt 20/08/2026 |
 | D3 | Database access | Drizzle ORM + SQL migrations + `pg` driver | Đã áp dụng 20/08/2026 |
 | D4 | Monorepo tooling | npm workspaces + Turborepo | Đã áp dụng 20/08/2026 |
 | D5 | Managed PostgreSQL | Neon cho production; Postgres.app cho local | Đã chốt baseline 20/08/2026 |
 | D6 | Backend deployment đầu tiên | Docker trên AWS EC2; web trên Vercel | Chờ xác nhận |
 | D7 | Repository visibility | GitHub public để dùng làm portfolio | Chờ xác nhận |
-| D8 | Frontend data/routing libraries | TanStack Query + React Router; đánh giá TanStack Router sau MVP | Chờ xác nhận |
+| D8 | Frontend data/routing libraries | TanStack Query + React Router | Đã áp dụng 24/08/2026 |
 
 ### Vì sao đề xuất Drizzle thay vì che toàn bộ SQL
 
@@ -867,6 +867,8 @@ Thời lượng chỉ là ước lượng học tập. Mỗi phase kết thúc b
 - Race test không thể accept vượt project capacity.
 
 ### Phase 7 — React web MVP (8–12 ngày)
+
+**Trạng thái:** Hoàn tất ngày 24/08/2026; guest/student/owner journeys, responsive design audit, server-state invalidation, optimistic rollback, component tests và browser QA đã được kiểm chứng.
 
 **Mục tiêu**
 
