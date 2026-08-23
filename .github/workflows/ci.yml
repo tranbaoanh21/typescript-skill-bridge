@@ -50,17 +50,24 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: Enforce coverage floors
+        run: npm run test:coverage
+
+      - name: Audit production dependencies
+        run: npm run security:audit
+
       - name: Build
         run: npm run build
 
   database:
     name: Database integration
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     env:
       CI: true
       DATABASE_URL: postgresql://skillbridge:skillbridge@localhost:5432/skillbridge_test
       DATABASE_DIRECT_URL: postgresql://skillbridge:skillbridge@localhost:5432/skillbridge_test
+      E2E_DATABASE_URL: postgresql://skillbridge:skillbridge@localhost:5432/skillbridge_test
       TEST_DATABASE_URL: postgresql://skillbridge:skillbridge@localhost:5432/skillbridge_test
       TURBO_TELEMETRY_DISABLED: 1
     services:
@@ -102,3 +109,20 @@ jobs:
 
       - name: Run Postman collection with Newman
         run: npm run postman:test
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run critical browser journeys
+        run: npm run test:e2e
+
+      - name: Upload Playwright failure evidence
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: playwright-failure-${{ github.run_attempt }}
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 7

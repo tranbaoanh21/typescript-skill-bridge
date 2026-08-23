@@ -10,7 +10,7 @@ Create a profile → Find a project → Apply → Form a team → Collaborate �
 
 ## Project status
 
-Requirements, PostgreSQL invariants, authentication, executable API contracts, the core domain API, and the responsive React web MVP are operational. Advanced quality, distributed systems, mobile, and delivery phases continue through reviewed, short-lived feature branches.
+Requirements, PostgreSQL invariants, authentication, executable API contracts, the core domain API, the responsive React web MVP, and deterministic quality gates are operational. Distributed systems, mobile, and delivery phases continue through reviewed, short-lived feature branches.
 
 ## Planned platform
 
@@ -65,6 +65,9 @@ npm run format:check
 npm run lint
 npm run typecheck
 npm test
+npm run test:coverage
+npm run openapi:check
+npm run security:audit
 npm run build
 ```
 
@@ -107,13 +110,25 @@ Swagger UI instructions, and Postman/Newman workflow are documented in
 Phase 6 authorization, concurrency, and workflow decisions are documented in
 [docs/api/core-domain.md](docs/api/core-domain.md).
 
+```bash
+npm run openapi:check
+TEST_DATABASE_URL=postgresql://skillbridge:skillbridge@localhost:5434/skillbridge_test npm run postman:test
+```
+
 ## React web MVP
 
 The web client implements project discovery, authentication, profile and skill editing, project creation and owner management, applications, lifecycle controls, and the team task board. Configure `apps/web/.env` from `apps/web/.env.example` before running it against another API environment.
 
 The visual direction, responsive breakpoints, state model, and accessibility audit are documented in [docs/design/web-mvp-brief.md](docs/design/web-mvp-brief.md).
 
+## Quality engineering
+
+Unit, component, database integration, Newman contract, and Playwright browser suites protect different parts of the system. Start the test PostgreSQL container before running integration or browser tests:
+
 ```bash
-npm run openapi:check
+TEST_DATABASE_URL=postgresql://skillbridge:skillbridge@localhost:5434/skillbridge_test npm run test:integration
 TEST_DATABASE_URL=postgresql://skillbridge:skillbridge@localhost:5434/skillbridge_test npm run postman:test
+E2E_DATABASE_URL=postgresql://skillbridge:skillbridge@localhost:5434/skillbridge_test npm run test:e2e
 ```
+
+Playwright automatically migrates and seeds only a database named `skillbridge_test`. Coverage policy, critical journeys, failure artifacts, and dependency-scanning decisions are documented in [docs/testing/quality-engineering.md](docs/testing/quality-engineering.md).
