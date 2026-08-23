@@ -10,7 +10,7 @@ Create a profile → Find a project → Apply → Form a team → Collaborate �
 
 ## Project status
 
-Requirements, PostgreSQL invariants, authentication, executable API contracts, the core domain API, the responsive React web MVP, and deterministic quality gates are operational. Distributed systems, mobile, and delivery phases continue through reviewed, short-lived feature branches.
+Requirements, PostgreSQL invariants, authentication, executable API contracts, the core domain API, the responsive React web MVP, deterministic quality gates, Docker runtime, and Socket.IO collaboration are operational. Redis scaling, asynchronous workers, mobile, and delivery phases continue through reviewed, short-lived feature branches.
 
 ## Planned platform
 
@@ -142,3 +142,7 @@ E2E_DATABASE_URL=postgresql://skillbridge:skillbridge@localhost:5434/skillbridge
 ```
 
 Playwright automatically migrates and seeds only a database named `skillbridge_test`. Coverage policy, critical journeys, failure artifacts, and dependency-scanning decisions are documented in [docs/testing/quality-engineering.md](docs/testing/quality-engineering.md).
+
+## Realtime collaboration
+
+The team workspace uses authenticated Socket.IO rooms for durable chat, task events, reconnect recovery, presence, and typing signals. PostgreSQL and REST remain the source of truth. Event contracts, persist-before-broadcast ordering, idempotency, room authorization, and recovery behavior are documented in [docs/realtime/socketio.md](docs/realtime/socketio.md).

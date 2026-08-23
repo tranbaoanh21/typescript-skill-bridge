@@ -61,6 +61,8 @@ API và web có threshold riêng trong Vitest config. Threshold ban đầu đư�
 
 Integration tests hiện là bằng chứng chính cho core API, nên số liệu V8 từ unit suite không phản ánh toàn bộ độ phủ backend. Mọi thay đổi domain phải chọn cấp test thấp nhất có thể chứng minh đúng rủi ro; thay đổi transaction hoặc database invariant vẫn cần integration test.
 
+Các Socket.IO server/service, browser realtime hook và workspace integration surface được loại khỏi **unit coverage denominator** vì chúng chạy với PostgreSQL, HTTP server và hai socket clients thật trong integration/E2E gates. Chúng không được miễn kiểm thử: `realtime.integration.test.ts` và Playwright workspace/team-chat journey là gate bắt buộc trong CI database job. Policy này giữ unit floor có ý nghĩa mà không hạ threshold chỉ vì thêm code thuộc lớp kiểm thử khác.
+
 ## Dependency policy
 
 `npm run security:audit` kiểm tra production dependency với mức `high` trở lên. Dev-tool advisories được theo dõi riêng vì Newman và các tool test có thể giữ dependency transitively cũ; không dùng `npm audit fix --force` nếu nó gây breaking upgrade hoặc xóa test tooling. Dependabot kiểm tra npm và GitHub Actions hàng tuần.

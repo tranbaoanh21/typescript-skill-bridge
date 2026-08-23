@@ -4,3 +4,14 @@ export const serviceNames = {
 } as const;
 
 export type ServiceName = (typeof serviceNames)[keyof typeof serviceNames];
+
+export type {
+  ClientToServerEvents,
+  MessageSendInput,
+  ProjectJoinInput,
+  ProjectMessage,
+  RealtimeAck,
+  RealtimeTask,
+  ServerToClientEvents,
+  TypingInput,
+} from './realtime.js';

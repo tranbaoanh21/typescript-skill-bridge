@@ -6,7 +6,12 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   test: {
     coverage: {
-      exclude: ['src/main.tsx', 'src/lib/types.ts'],
+      exclude: [
+        'src/main.tsx',
+        'src/lib/types.ts',
+        'src/lib/useProjectRealtime.ts',
+        'src/pages/WorkspacePage.tsx',
+      ],
       include: ['src/**/*.{ts,tsx}'],
       provider: 'v8',
       reporter: ['text', 'json-summary', 'lcov'],

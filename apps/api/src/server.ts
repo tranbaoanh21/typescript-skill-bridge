@@ -7,7 +7,10 @@ import { readEnvironment } from './config/env.js';
 import { AuthRepository } from './modules/auth/auth.repository.js';
 import { AuthService } from './modules/auth/auth.service.js';
 import { TokenService } from './modules/auth/token.service.js';
+import { DomainEventBus } from './modules/domain/domain.events.js';
 import { DomainService } from './modules/domain/domain.service.js';
+import { attachRealtimeServer } from './modules/realtime/realtime.server.js';
+import { RealtimeService } from './modules/realtime/realtime.service.js';
 
 const environment = readEnvironment();
 const { database, pool } = createDatabaseClient(environment);
@@ -19,16 +22,26 @@ const tokenService = new TokenService({
   secret: environment.JWT_ACCESS_SECRET,
 });
 const authService = new AuthService(new AuthRepository(database), tokenService);
+const domainEvents = new DomainEventBus();
+const realtimeService = new RealtimeService(pool);
 const app = createApp({
   auth: { service: authService, tokenService },
   checkReadiness: async () => {
     await pool.query('SELECT 1');
   },
   corsOrigin: environment.WEB_ORIGIN,
-  domain: { service: new DomainService(pool), tokenService },
+  domain: { service: new DomainService(pool, domainEvents), tokenService },
   enableApiDocs: environment.ENABLE_API_DOCS,
+  realtime: { service: realtimeService, tokenService },
 });
 const server = createServer(app);
+const realtime = attachRealtimeServer({
+  corsOrigin: environment.WEB_ORIGIN,
+  domainEvents,
+  httpServer: server,
+  pool,
+  tokenService,
+});
 
 server.listen(environment.PORT, () => {
   console.info(`SkillBridge API listening on http://localhost:${environment.PORT}`);
@@ -43,8 +56,10 @@ const shutdown = (signal: NodeJS.Signals) => {
   }, 10_000);
   forceShutdownTimer.unref();
 
+  realtime.disconnectSockets(true);
   server.close(async (error) => {
     clearTimeout(forceShutdownTimer);
+    realtime.close();
     await pool.end();
 
     if (error) {

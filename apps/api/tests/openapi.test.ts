@@ -25,6 +25,7 @@ describe('OpenAPI contract', () => {
       '/api/v1/projects/{id}/transitions',
       '/api/v1/projects/{projectId}/applications',
       '/api/v1/projects/{projectId}/members',
+      '/api/v1/projects/{projectId}/messages',
       '/api/v1/projects/{projectId}/sprints',
       '/api/v1/projects/{projectId}/tasks',
       '/api/v1/projects/{slug}',

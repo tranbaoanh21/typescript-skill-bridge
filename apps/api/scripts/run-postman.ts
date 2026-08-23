@@ -10,6 +10,7 @@ import { AuthRepository } from '../src/modules/auth/auth.repository.js';
 import { AuthService } from '../src/modules/auth/auth.service.js';
 import { TokenService } from '../src/modules/auth/token.service.js';
 import { DomainService } from '../src/modules/domain/domain.service.js';
+import { RealtimeService } from '../src/modules/realtime/realtime.service.js';
 
 const testDatabaseUrl = process.env['TEST_DATABASE_URL'];
 
@@ -44,6 +45,7 @@ const app = createApp({
   domain: { service: new DomainService(pool), tokenService },
   enableApiDocs: true,
   enableRequestLogging: false,
+  realtime: { service: new RealtimeService(pool), tokenService },
 });
 const server = createServer(app);
 const testEmail = `postman-${randomUUID()}@example.com`;

@@ -410,6 +410,27 @@ export const taskActivities = pgTable(
   (table) => [index('task_activities_task_created_idx').on(table.taskId, table.createdAt)],
 );
 
+export const projectMessages = pgTable(
+  'project_messages',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    projectId: uuid('project_id')
+      .notNull()
+      .references(() => projects.id, { onDelete: 'cascade' }),
+    senderId: uuid('sender_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    clientMessageId: uuid('client_message_id').notNull(),
+    body: text('body').notNull(),
+    createdAt: timestamp('created_at', { mode: 'date', withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    unique('project_messages_sender_client_unique').on(table.senderId, table.clientMessageId),
+    index('project_messages_project_cursor_idx').on(table.projectId, table.createdAt, table.id),
+    check('project_messages_body_check', sql`length(btrim(${table.body})) between 1 and 2000`),
+  ],
+);
+
 export const auditLogs = pgTable(
   'audit_logs',
   {
@@ -436,3 +457,4 @@ export type ProjectApplication = typeof projectApplications.$inferSelect;
 export type NewProjectApplication = typeof projectApplications.$inferInsert;
 export type Sprint = typeof sprints.$inferSelect;
 export type Task = typeof tasks.$inferSelect;
+export type ProjectMessage = typeof projectMessages.$inferSelect;

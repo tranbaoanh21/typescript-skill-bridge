@@ -1,6 +1,7 @@
 import type { DatabasePool, DatabasePoolClient } from '@skillbridge/database';
 
 import { conflict, forbidden, notFound } from '../../shared/http/api-error.js';
+import { noOpDomainEventPublisher, type DomainEventPublisher } from './domain.events.js';
 import type {
   ApplicationCreateInput,
   ApplicationDecisionInput,
@@ -118,7 +119,10 @@ const taskSelection = `
   ), '[]'::jsonb) AS assignees`;
 
 export class DomainService {
-  constructor(private readonly pool: DatabasePool) {}
+  constructor(
+    private readonly pool: DatabasePool,
+    private readonly events: DomainEventPublisher = noOpDomainEventPublisher,
+  ) {}
 
   async getProfile(userId: string) {
     const profile = await this.pool.query(
@@ -548,7 +552,7 @@ export class DomainService {
   }
 
   async createTask(projectId: string, userId: string, input: TaskCreateInput) {
-    return withTransaction(this.pool, async (client) => {
+    const task = await withTransaction(this.pool, async (client) => {
       await this.requireMember(client, projectId, userId);
       await this.validateAssignees(client, projectId, input.assigneeIds);
       await this.validateSprint(client, projectId, input.sprintId);
@@ -577,6 +581,8 @@ export class DomainService {
       );
       return this.getTask(client, taskId);
     });
+    this.events.publish({ action: 'CREATED', actorId: userId, task, type: 'task.changed' });
+    return task;
   }
 
   async listTasks(projectId: string, userId: string) {
@@ -592,7 +598,7 @@ export class DomainService {
   }
 
   async updateTask(taskId: string, userId: string, input: TaskUpdateInput) {
-    return withTransaction(this.pool, async (client) => {
+    const task = await withTransaction(this.pool, async (client) => {
       const currentResult = await client.query<{
         description: string | null;
         dueAt: Date | null;
@@ -649,6 +655,8 @@ export class DomainService {
       );
       return updated;
     });
+    this.events.publish({ action: 'UPDATED', actorId: userId, task, type: 'task.changed' });
+    return task;
   }
 
   async updateAccountStatus(

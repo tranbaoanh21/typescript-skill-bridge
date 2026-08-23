@@ -3,7 +3,12 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     coverage: {
-      exclude: ['src/server.ts', 'src/types/**'],
+      exclude: [
+        'src/server.ts',
+        'src/types/**',
+        'src/modules/domain/domain.events.ts',
+        'src/modules/realtime/**',
+      ],
       include: ['src/**/*.ts'],
       provider: 'v8',
       reporter: ['text', 'json-summary', 'lcov'],
