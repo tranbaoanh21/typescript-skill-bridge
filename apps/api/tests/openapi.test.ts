@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { createOpenApiDocument } from '../src/docs/openapi.js';
 
 describe('OpenAPI contract', () => {
-  it('documents every Phase 4 route and bearer authentication', () => {
+  it('documents every committed API route and bearer authentication', () => {
     const document = createOpenApiDocument();
 
     expect(Object.keys(document.paths ?? {}).sort()).toEqual([
@@ -21,6 +21,7 @@ describe('OpenAPI contract', () => {
       '/api/v1/profile/skills',
       '/api/v1/projects',
       '/api/v1/projects/{id}',
+      '/api/v1/projects/{id}/manage',
       '/api/v1/projects/{id}/transitions',
       '/api/v1/projects/{projectId}/applications',
       '/api/v1/projects/{projectId}/members',

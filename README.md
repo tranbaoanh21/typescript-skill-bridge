@@ -10,7 +10,7 @@ Create a profile → Find a project → Apply → Form a team → Collaborate �
 
 ## Project status
 
-The TypeScript monorepo and PostgreSQL foundation are operational. Core MVP implementation is proceeding through reviewed, short-lived feature branches.
+Requirements, PostgreSQL invariants, authentication, executable API contracts, the core domain API, and the responsive React web MVP are operational. Advanced quality, distributed systems, mobile, and delivery phases continue through reviewed, short-lived feature branches.
 
 ## Planned platform
 
@@ -106,6 +106,12 @@ Swagger UI instructions, and Postman/Newman workflow are documented in
 
 Phase 6 authorization, concurrency, and workflow decisions are documented in
 [docs/api/core-domain.md](docs/api/core-domain.md).
+
+## React web MVP
+
+The web client implements project discovery, authentication, profile and skill editing, project creation and owner management, applications, lifecycle controls, and the team task board. Configure `apps/web/.env` from `apps/web/.env.example` before running it against another API environment.
+
+The visual direction, responsive breakpoints, state model, and accessibility audit are documented in [docs/design/web-mvp-brief.md](docs/design/web-mvp-brief.md).
 
 ```bash
 npm run openapi:check

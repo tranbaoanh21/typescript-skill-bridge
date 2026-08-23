@@ -119,6 +119,17 @@ describe('core domain API', () => {
     expect(created.status).toBe(201);
     const projectId = created.body.data.project.id as string;
 
+    const managedDraft = await request(app)
+      .get(`/api/v1/projects/${projectId}/manage`)
+      .set(bearer(owner.accessToken));
+    expect(managedDraft.status).toBe(200);
+    expect(managedDraft.body.data.project).toMatchObject({ id: projectId, status: 'DRAFT' });
+
+    const hiddenFromApplicant = await request(app)
+      .get(`/api/v1/projects/${projectId}/manage`)
+      .set(bearer(applicant.accessToken));
+    expect(hiddenFromApplicant.status).toBe(404);
+
     const forbiddenEdit = await request(app)
       .patch(`/api/v1/projects/${projectId}`)
       .set(bearer(applicant.accessToken))

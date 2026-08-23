@@ -61,6 +61,12 @@ export const createDomainRouter = (service: DomainService, tokenService: TokenSe
       .json({ data: await service.listProjects(projectListQuerySchema.parse(request.query)) });
   });
 
+  router.get('/projects/:id/manage', requireAuthentication, async (request, response) => {
+    const { id } = idParamSchema.parse(request.params);
+    const project = await service.getProjectForManager(id, authenticatedUserId(request));
+    response.status(200).json({ data: { project } });
+  });
+
   router.get('/projects/:slug', async (request, response) => {
     const { slug } = slugParamSchema.parse(request.params);
     response.status(200).json({ data: { project: await service.getProjectBySlug(slug) } });

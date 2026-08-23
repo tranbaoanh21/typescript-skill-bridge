@@ -335,6 +335,13 @@ registerDomainPath({
   tag: 'Projects',
 });
 registerDomainPath({
+  method: 'get',
+  params: idParams,
+  path: '/api/v1/projects/{id}/manage',
+  summary: 'Get an owned project in any lifecycle state',
+  tag: 'Projects',
+});
+registerDomainPath({
   body: projectCreateSchema,
   bodyExample: {
     capacity: 5,
