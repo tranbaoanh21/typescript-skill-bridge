@@ -1,0 +1,27 @@
+{
+  "name": "@skillbridge/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsx watch src/index.ts",
+    "lint": "eslint src tests",
+    "start": "node dist/index.js",
+    "test": "vitest run --passWithNoTests --exclude 'tests/**/*.integration.test.ts'",
+    "test:integration": "vitest run tests/worker.integration.test.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@skillbridge/contracts": "0.1.0",
+    "@skillbridge/database": "0.1.0",
+    "amqplib": "^2.0.1",
+    "dotenv": "^17.4.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/amqplib": "^0.10.8",
+    "@types/node": "^26.2.0",
+    "tsx": "^4.23.12"
+  }
+}

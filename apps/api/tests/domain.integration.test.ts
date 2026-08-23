@@ -77,6 +77,12 @@ afterEach(async () => {
   if (createdEmails.length === 0) return;
   const emails = createdEmails.splice(0);
   await pool.query(
+    `DELETE FROM outbox_events
+     WHERE payload->>'applicantId' IN
+       (SELECT id::text FROM users WHERE email = ANY($1::text[]))`,
+    [emails],
+  );
+  await pool.query(
     'DELETE FROM projects WHERE owner_id IN (SELECT id FROM users WHERE email = ANY($1::text[]))',
     [emails],
   );
@@ -165,9 +171,22 @@ describe('core domain API', () => {
     const accepted = await request(app)
       .post(`/api/v1/applications/${applicationId}/decision`)
       .set(bearer(owner.accessToken))
+      .set('x-request-id', 'domain-accept-correlation')
       .send({ decision: 'ACCEPTED', note: 'Strong fit for the stack.' });
     expect(accepted.status).toBe(200);
     expect(accepted.body.data.application.status).toBe('ACCEPTED');
+    const outbox = await pool.query(
+      `SELECT event_type AS "eventType", routing_key AS "routingKey",
+              correlation_id AS "correlationId", payload
+       FROM outbox_events WHERE aggregate_id = $1`,
+      [applicationId],
+    );
+    expect(outbox.rows[0]).toMatchObject({
+      correlationId: 'domain-accept-correlation',
+      eventType: 'application.accepted',
+      payload: { applicantId: applicant.id, applicationId, projectId },
+      routingKey: 'notification.application.accepted',
+    });
 
     const members = await request(app)
       .get(`/api/v1/projects/${projectId}/members`)

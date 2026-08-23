@@ -32,7 +32,10 @@ Khởi động PostgreSQL test trước các suite tích hợp:
 
 ```bash
 docker compose -f infrastructure/docker/compose.database.yaml up -d --wait
-TEST_DATABASE_URL=postgresql://skillbridge:skillbridge@localhost:5434/skillbridge_test npm run test:integration
+TEST_DATABASE_URL=postgresql://skillbridge:skillbridge@localhost:5434/skillbridge_test \
+REDIS_URL=redis://:skillbridge-redis@localhost:6379 \
+RABBITMQ_URL=amqp://skillbridge:skillbridge-rabbit@localhost:5672/skillbridge \
+npm run test:integration
 TEST_DATABASE_URL=postgresql://skillbridge:skillbridge@localhost:5434/skillbridge_test npm run postman:test
 E2E_DATABASE_URL=postgresql://skillbridge:skillbridge@localhost:5434/skillbridge_test npm run test:e2e
 ```

@@ -227,6 +227,12 @@ const taskIdParams = z.object({
 const slugParams = z.object({
   slug: z.string().openapi({ param: { in: 'path', name: 'slug' }, example: 'hcmut-skillbridge' }),
 });
+const notificationIdParams = z.object({
+  id: z.uuid().openapi({ param: { in: 'path', name: 'id' } }),
+});
+const notificationListQuery = z.object({
+  limit: z.coerce.number().int().min(1).max(100).default(30),
+});
 
 interface DomainPathOptions {
   authenticated?: boolean;
@@ -238,7 +244,14 @@ interface DomainPathOptions {
   query?: z.ZodObject;
   status?: number;
   summary: string;
-  tag: 'Profiles' | 'Projects' | 'Applications' | 'Workspace' | 'Realtime' | 'Administration';
+  tag:
+    | 'Profiles'
+    | 'Projects'
+    | 'Applications'
+    | 'Workspace'
+    | 'Realtime'
+    | 'Notifications'
+    | 'Administration';
 }
 
 const registerDomainPath = ({
@@ -500,6 +513,21 @@ registerDomainPath({
   tag: 'Realtime',
 });
 registerDomainPath({
+  method: 'get',
+  path: '/api/v1/notifications',
+  query: notificationListQuery,
+  summary: 'List notifications for the current user',
+  tag: 'Notifications',
+});
+registerDomainPath({
+  method: 'post',
+  params: notificationIdParams,
+  path: '/api/v1/notifications/{id}/read',
+  status: 200,
+  summary: 'Mark one notification as read',
+  tag: 'Notifications',
+});
+registerDomainPath({
   body: accountStatusSchema,
   bodyExample: { status: 'SUSPENDED' },
   method: 'patch',
@@ -655,6 +683,7 @@ export const createOpenApiDocument = () =>
         description: 'Durable recovery endpoints that complement the Socket.IO protocol.',
         name: 'Realtime',
       },
+      { description: 'Asynchronous in-app and email delivery records.', name: 'Notifications' },
       { description: 'Global moderation and audit events.', name: 'Administration' },
     ],
   });

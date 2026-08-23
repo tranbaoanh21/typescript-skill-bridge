@@ -10,7 +10,7 @@ Create a profile → Find a project → Apply → Form a team → Collaborate �
 
 ## Project status
 
-Requirements, PostgreSQL invariants, authentication, executable API contracts, the core domain API, the responsive React web MVP, deterministic quality gates, Docker runtime, Socket.IO collaboration, and Redis scaling are operational. Asynchronous workers, mobile, and delivery phases continue through reviewed, short-lived feature branches.
+Requirements, PostgreSQL invariants, authentication, executable API contracts, the core domain API, the responsive React web MVP, deterministic quality gates, Docker runtime, Socket.IO/Redis scaling, and the RabbitMQ outbox worker are operational. Mobile and delivery phases continue through reviewed, short-lived feature branches.
 
 ## Planned platform
 
@@ -41,11 +41,17 @@ Requirements:
 - npm `11.17.0`
 - Docker Desktop or Postgres.app for PostgreSQL
 
-Install dependencies and run both applications:
+Install dependencies and run the API plus web applications:
 
 ```bash
 npm install
 npm run dev
+```
+
+Run the background worker separately after configuring `apps/worker/.env`:
+
+```bash
+npm run dev:worker
 ```
 
 Hoặc khởi động API cùng PostgreSQL, Redis và RabbitMQ bằng runtime containers:
@@ -101,6 +107,7 @@ Run invariant tests against the test database:
 ```bash
 TEST_DATABASE_URL=postgresql://skillbridge:skillbridge@localhost:5434/skillbridge_test \
 REDIS_URL=redis://:skillbridge-redis@localhost:6379 \
+RABBITMQ_URL=amqp://skillbridge:skillbridge-rabbit@localhost:5672/skillbridge \
 npm run test:integration
 ```
 
@@ -139,7 +146,10 @@ The visual direction, responsive breakpoints, state model, and accessibility aud
 Unit, component, database integration, Newman contract, and Playwright browser suites protect different parts of the system. Start the test PostgreSQL container before running integration or browser tests:
 
 ```bash
-TEST_DATABASE_URL=postgresql://skillbridge:skillbridge@localhost:5434/skillbridge_test npm run test:integration
+TEST_DATABASE_URL=postgresql://skillbridge:skillbridge@localhost:5434/skillbridge_test \
+REDIS_URL=redis://:skillbridge-redis@localhost:6379 \
+RABBITMQ_URL=amqp://skillbridge:skillbridge-rabbit@localhost:5672/skillbridge \
+npm run test:integration
 TEST_DATABASE_URL=postgresql://skillbridge:skillbridge@localhost:5434/skillbridge_test npm run postman:test
 E2E_DATABASE_URL=postgresql://skillbridge:skillbridge@localhost:5434/skillbridge_test npm run test:e2e
 ```
@@ -151,3 +161,5 @@ Playwright automatically migrates and seeds only a database named `skillbridge_t
 The team workspace uses authenticated Socket.IO rooms for durable chat, task events, reconnect recovery, presence, and typing signals. PostgreSQL and REST remain the source of truth. Event contracts, persist-before-broadcast ordering, idempotency, room authorization, and recovery behavior are documented in [docs/realtime/socketio.md](docs/realtime/socketio.md).
 
 Redis provides cache-aside project reads, atomic auth rate limiting, TTL presence, and Socket.IO Pub/Sub across API instances. Keys, invalidation, metrics, sticky sessions, and failure behavior are documented in [docs/realtime/redis.md](docs/realtime/redis.md).
+
+Application acceptance writes a transactional outbox event. A separate RabbitMQ worker uses publisher confirms, quorum queues, manual acknowledgements, retry backoff, an idempotent inbox, and a DLQ to create notifications without coupling broker availability to the API transaction. The topology and failure model are documented in [docs/messaging/rabbitmq.md](docs/messaging/rabbitmq.md).

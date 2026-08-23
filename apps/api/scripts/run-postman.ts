@@ -112,6 +112,12 @@ try {
   });
 } finally {
   await pool.query(
+    `DELETE FROM outbox_events
+     WHERE payload->>'applicantId' IN
+       (SELECT id::text FROM users WHERE email = ANY($1::text[]))`,
+    [[testEmail, applicantEmail]],
+  );
+  await pool.query(
     'DELETE FROM projects WHERE owner_id IN (SELECT id FROM users WHERE email = ANY($1::text[]))',
     [[testEmail, applicantEmail]],
   );

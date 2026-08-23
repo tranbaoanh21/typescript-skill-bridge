@@ -11,6 +11,7 @@ import { TokenService } from './modules/auth/token.service.js';
 import { RedisProjectCache, noOpProjectCache } from './modules/cache/project.cache.js';
 import { DomainEventBus } from './modules/domain/domain.events.js';
 import { DomainService } from './modules/domain/domain.service.js';
+import { NotificationService } from './modules/notifications/notification.service.js';
 import { attachRealtimeServer } from './modules/realtime/realtime.server.js';
 import { RealtimeService } from './modules/realtime/realtime.service.js';
 import { RedisPresenceStore } from './modules/realtime/presence.store.js';
@@ -50,6 +51,7 @@ const app = createApp({
   corsOrigin: environment.WEB_ORIGIN,
   domain: { service: new DomainService(pool, domainEvents, projectCache), tokenService },
   enableApiDocs: environment.ENABLE_API_DOCS,
+  notifications: { service: new NotificationService(pool), tokenService },
   projectCache,
   realtime: { service: realtimeService, tokenService },
 });

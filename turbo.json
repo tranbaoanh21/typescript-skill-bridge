@@ -23,7 +23,7 @@
     "test:integration": {
       "dependsOn": ["^build"],
       "cache": false,
-      "env": ["REDIS_URL", "TEST_DATABASE_URL"],
+      "env": ["RABBITMQ_URL", "REDIS_URL", "TEST_DATABASE_URL"],
       "outputs": []
     },
     "typecheck": {

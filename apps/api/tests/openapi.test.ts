@@ -17,6 +17,8 @@ describe('OpenAPI contract', () => {
       '/api/v1/auth/me',
       '/api/v1/auth/refresh',
       '/api/v1/auth/register',
+      '/api/v1/notifications',
+      '/api/v1/notifications/{id}/read',
       '/api/v1/profile',
       '/api/v1/profile/skills',
       '/api/v1/projects',

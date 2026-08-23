@@ -431,6 +431,101 @@ export const projectMessages = pgTable(
   ],
 );
 
+export const outboxEvents = pgTable(
+  'outbox_events',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    aggregateType: varchar('aggregate_type', { length: 80 }).notNull(),
+    aggregateId: uuid('aggregate_id').notNull(),
+    eventType: varchar('event_type', { length: 120 }).notNull(),
+    eventVersion: smallint('event_version').default(1).notNull(),
+    routingKey: varchar('routing_key', { length: 160 }).notNull(),
+    payload: jsonb('payload').notNull(),
+    correlationId: varchar('correlation_id', { length: 100 }).notNull(),
+    attempts: integer('attempts').default(0).notNull(),
+    nextAttemptAt: timestamp('next_attempt_at', { mode: 'date', withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    publishedAt: timestamp('published_at', { mode: 'date', withTimezone: true }),
+    lastError: text('last_error'),
+    occurredAt: timestamp('occurred_at', { mode: 'date', withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index('outbox_events_pending_idx')
+      .on(table.nextAttemptAt, table.occurredAt)
+      .where(sql`${table.publishedAt} is null`),
+    check('outbox_events_version_check', sql`${table.eventVersion} > 0`),
+    check('outbox_events_attempts_check', sql`${table.attempts} >= 0`),
+    check('outbox_events_type_check', sql`length(btrim(${table.eventType})) > 0`),
+    check('outbox_events_routing_key_check', sql`length(btrim(${table.routingKey})) > 0`),
+  ],
+);
+
+export const notifications = pgTable(
+  'notifications',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    sourceEventId: uuid('source_event_id').notNull().unique(),
+    recipientId: uuid('recipient_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    type: varchar('type', { length: 120 }).notNull(),
+    title: varchar('title', { length: 180 }).notNull(),
+    body: text('body').notNull(),
+    data: jsonb('data').notNull(),
+    readAt: timestamp('read_at', { mode: 'date', withTimezone: true }),
+    createdAt: timestamp('created_at', { mode: 'date', withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index('notifications_recipient_created_idx').on(table.recipientId, table.createdAt),
+    check('notifications_title_check', sql`length(btrim(${table.title})) > 0`),
+    check('notifications_body_check', sql`length(btrim(${table.body})) > 0`),
+  ],
+);
+
+export const notificationDeliveries = pgTable(
+  'notification_deliveries',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    notificationId: uuid('notification_id')
+      .notNull()
+      .references(() => notifications.id, { onDelete: 'cascade' }),
+    channel: varchar('channel', { length: 40 }).notNull(),
+    recipient: varchar('recipient', { length: 320 }).notNull(),
+    status: varchar('status', { length: 40 }).default('SIMULATED').notNull(),
+    providerMessageId: varchar('provider_message_id', { length: 180 }),
+    deliveredAt: timestamp('delivered_at', { mode: 'date', withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    unique('notification_deliveries_notification_channel_unique').on(
+      table.notificationId,
+      table.channel,
+    ),
+    check('notification_deliveries_channel_check', sql`length(btrim(${table.channel})) > 0`),
+  ],
+);
+
+export const consumerInbox = pgTable(
+  'consumer_inbox',
+  {
+    consumerName: varchar('consumer_name', { length: 120 }).notNull(),
+    messageId: uuid('message_id').notNull(),
+    processedAt: timestamp('processed_at', { mode: 'date', withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({
+      name: 'consumer_inbox_pk',
+      columns: [table.consumerName, table.messageId],
+    }),
+  ],
+);
+
 export const auditLogs = pgTable(
   'audit_logs',
   {
@@ -458,3 +553,5 @@ export type NewProjectApplication = typeof projectApplications.$inferInsert;
 export type Sprint = typeof sprints.$inferSelect;
 export type Task = typeof tasks.$inferSelect;
 export type ProjectMessage = typeof projectMessages.$inferSelect;
+export type OutboxEvent = typeof outboxEvents.$inferSelect;
+export type Notification = typeof notifications.$inferSelect;

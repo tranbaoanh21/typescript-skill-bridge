@@ -1,4 +1,5 @@
 import type { DatabasePool, DatabasePoolClient } from '@skillbridge/database';
+import { eventTypes, routingKeys, type ApplicationAcceptedData } from '@skillbridge/contracts';
 
 import { conflict, forbidden, notFound } from '../../shared/http/api-error.js';
 import { noOpProjectCache, type ProjectCache } from '../cache/project.cache.js';
@@ -494,18 +495,22 @@ export class DomainService {
     applicationId: string,
     managerId: string,
     input: ApplicationDecisionInput,
+    correlationId: string,
   ) {
     const decision = await withTransaction(this.pool, async (client) => {
       const application = await client.query<{
         applicantId: string;
         capacity: number;
         projectId: string;
+        projectTitle: string;
+        recipientEmail: string;
         status: string;
       }>(
         `SELECT pa.project_id AS "projectId", pa.applicant_id AS "applicantId", pa.status,
-                p.capacity
+                p.capacity, p.title AS "projectTitle", u.email AS "recipientEmail"
          FROM project_applications pa
          JOIN projects p ON p.id = pa.project_id
+         JOIN users u ON u.id = pa.applicant_id
          WHERE pa.id = $1
          FOR UPDATE OF p, pa`,
         [applicationId],
@@ -541,6 +546,27 @@ export class DomainService {
           `INSERT INTO project_members (project_id, user_id, project_role, source_application_id)
            VALUES ($1, $2, 'MEMBER', $3)`,
           [record.projectId, record.applicantId, applicationId],
+        );
+        const payload: ApplicationAcceptedData = {
+          applicantId: record.applicantId,
+          applicationId,
+          managerId,
+          projectId: record.projectId,
+          projectTitle: record.projectTitle,
+          recipientEmail: record.recipientEmail,
+        };
+        await client.query(
+          `INSERT INTO outbox_events
+             (aggregate_type, aggregate_id, event_type, event_version, routing_key, payload,
+              correlation_id)
+           VALUES ('PROJECT_APPLICATION', $1, $2, 1, $3, $4::jsonb, $5)`,
+          [
+            applicationId,
+            eventTypes.applicationAccepted,
+            routingKeys.applicationAccepted,
+            JSON.stringify(payload),
+            correlationId,
+          ],
         );
       }
       return decided.rows[0];

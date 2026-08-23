@@ -11,6 +11,8 @@ import { noOpProjectCache, type ProjectCache } from './modules/cache/project.cac
 import { createDomainRouter } from './modules/domain/domain.routes.js';
 import type { DomainService } from './modules/domain/domain.service.js';
 import { createHealthRouter, type ReadinessCheck } from './modules/health/health.routes.js';
+import { createNotificationRouter } from './modules/notifications/notification.routes.js';
+import type { NotificationService } from './modules/notifications/notification.service.js';
 import { createRealtimeRouter } from './modules/realtime/realtime.routes.js';
 import type { RealtimeService } from './modules/realtime/realtime.service.js';
 import type { RequestHandler } from 'express';
@@ -32,6 +34,10 @@ export interface AppOptions {
   };
   enableApiDocs?: boolean;
   enableRequestLogging?: boolean;
+  notifications?: {
+    service: NotificationService;
+    tokenService: TokenService;
+  };
   realtime?: {
     service: RealtimeService;
     tokenService: TokenService;
@@ -45,6 +51,7 @@ export const createApp = ({
   domain,
   enableApiDocs = false,
   enableRequestLogging = true,
+  notifications,
   projectCache = noOpProjectCache,
   realtime,
 }: AppOptions) => {
@@ -90,6 +97,10 @@ export const createApp = ({
 
   if (realtime) {
     app.use('/api/v1', createRealtimeRouter(realtime.service, realtime.tokenService));
+  }
+
+  if (notifications) {
+    app.use('/api/v1', createNotificationRouter(notifications.service, notifications.tokenService));
   }
 
   app.use((request, response) => {

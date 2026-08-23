@@ -160,6 +160,7 @@ export const createDomainRouter = (service: DomainService, tokenService: TokenSe
         applicationId,
         authenticatedUserId(request),
         applicationDecisionSchema.parse(request.body),
+        String(request.id),
       );
       response.status(200).json({ data: { application } });
     },

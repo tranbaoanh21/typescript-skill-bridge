@@ -8,6 +8,7 @@ WORKDIR /workspace
 FROM base AS development-dependencies
 COPY package.json package-lock.json ./
 COPY apps/api/package.json apps/api/package.json
+COPY apps/worker/package.json apps/worker/package.json
 COPY apps/web/package.json apps/web/package.json
 COPY packages/contracts/package.json packages/contracts/package.json
 COPY packages/database/package.json packages/database/package.json
@@ -16,19 +17,32 @@ RUN npm ci
 FROM development-dependencies AS build
 COPY tsconfig.base.json ./
 COPY apps/api ./apps/api
+COPY apps/worker ./apps/worker
 COPY packages/contracts ./packages/contracts
 COPY packages/database ./packages/database
 RUN npm run build --workspace @skillbridge/contracts \
     && npm run build --workspace @skillbridge/database \
-    && npm run build --workspace @skillbridge/api
+    && npm run build --workspace @skillbridge/api \
+    && npm run build --workspace @skillbridge/worker
 
 FROM base AS production-dependencies
 COPY package.json package-lock.json ./
 COPY apps/api/package.json apps/api/package.json
+COPY apps/worker/package.json apps/worker/package.json
 COPY apps/web/package.json apps/web/package.json
 COPY packages/contracts/package.json packages/contracts/package.json
 COPY packages/database/package.json packages/database/package.json
 RUN npm ci --omit=dev --workspace @skillbridge/api --include-workspace-root=false \
+    && npm cache clean --force
+
+FROM base AS worker-production-dependencies
+COPY package.json package-lock.json ./
+COPY apps/api/package.json apps/api/package.json
+COPY apps/worker/package.json apps/worker/package.json
+COPY apps/web/package.json apps/web/package.json
+COPY packages/contracts/package.json packages/contracts/package.json
+COPY packages/database/package.json packages/database/package.json
+RUN npm ci --omit=dev --workspace @skillbridge/worker --include-workspace-root=false \
     && npm cache clean --force
 
 FROM node:${NODE_VERSION}-bookworm-slim AS runtime
@@ -52,3 +66,24 @@ HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=5 \
   CMD ["node", "-e", "fetch(`http://127.0.0.1:${process.env.PORT ?? 3000}/health/live`).then((response) => { if (!response.ok) process.exit(1); }).catch(() => process.exit(1));"]
 
 CMD ["node", "apps/api/dist/server.js"]
+
+FROM node:${NODE_VERSION}-bookworm-slim AS worker-runtime
+ENV NODE_ENV=production \
+    WORKER_HEALTH_PORT=3001
+WORKDIR /workspace
+
+COPY --from=worker-production-dependencies --chown=node:node /workspace/node_modules ./node_modules
+COPY --chown=node:node package.json package-lock.json ./
+COPY --chown=node:node apps/worker/package.json apps/worker/package.json
+COPY --chown=node:node packages/contracts/package.json packages/contracts/package.json
+COPY --chown=node:node packages/database/package.json packages/database/package.json
+COPY --from=build --chown=node:node /workspace/apps/worker/dist ./apps/worker/dist
+COPY --from=build --chown=node:node /workspace/packages/contracts/dist ./packages/contracts/dist
+COPY --from=build --chown=node:node /workspace/packages/database/dist ./packages/database/dist
+
+USER node
+EXPOSE 3001
+HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=5 \
+  CMD ["node", "-e", "fetch(`http://127.0.0.1:${process.env.WORKER_HEALTH_PORT ?? 3001}/health/ready`).then((response) => { if (!response.ok) process.exit(1); }).catch(() => process.exit(1));"]
+
+CMD ["node", "apps/worker/dist/index.js"]
