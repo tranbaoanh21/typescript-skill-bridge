@@ -51,6 +51,7 @@ export default defineConfig({
         JWT_ACCESS_TTL_SECONDS: '900',
         NODE_ENV: 'test',
         PORT: String(apiPort),
+        ...(process.env['REDIS_URL'] ? { REDIS_URL: process.env['REDIS_URL'] } : {}),
         REFRESH_TOKEN_TTL_DAYS: '30',
         WEB_ORIGIN: webUrl,
       },

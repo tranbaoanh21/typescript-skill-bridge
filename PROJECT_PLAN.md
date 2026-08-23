@@ -965,6 +965,8 @@ Thời lượng chỉ là ước lượng học tập. Mỗi phase kết thúc b
 
 ### Phase 11 — Redis cache và Pub/Sub (4–6 ngày)
 
+**Trạng thái:** Hoàn tất ngày 24/08/2026; cache-aside discovery/detail với generation invalidation, auth rate limit nguyên tử, Redis TTL presence, Socket.IO adapter hai API instances, cache metrics, sticky-session/failure docs và fail-open behavior đã được kiểm chứng.
+
 **Mục tiêu**
 
 - Học cache đúng chỗ và scale Socket.IO nhiều instances.

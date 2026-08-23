@@ -84,6 +84,21 @@ const unavailableHealthSchema = registry.register(
     timestamp: z.iso.datetime(),
   }),
 );
+const cacheHealthSchema = registry.register(
+  'CacheHealth',
+  z.object({
+    cache: z.object({
+      averageLatencyMs: z.number().nonnegative(),
+      enabled: z.boolean(),
+      errors: z.int().nonnegative(),
+      hits: z.int().nonnegative(),
+      misses: z.int().nonnegative(),
+      operations: z.int().nonnegative(),
+    }),
+    service: z.literal('skillbridge-api'),
+    status: z.literal('ok'),
+  }),
+);
 const domainSuccessSchema = registry.register(
   'DomainSuccessEnvelope',
   z.object({ data: z.record(z.string(), z.unknown()) }),
@@ -145,6 +160,19 @@ registry.registerPath({
     },
   },
   summary: 'Readiness check',
+  tags: ['Health'],
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/health/cache',
+  responses: {
+    200: {
+      content: { 'application/json': { schema: cacheHealthSchema } },
+      description: 'Process-local Redis cache hit, miss, error, and latency counters.',
+    },
+  },
+  summary: 'Cache metrics',
   tags: ['Health'],
 });
 

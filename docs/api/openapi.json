@@ -84,6 +84,64 @@
           "user"
         ]
       },
+      "CacheHealth": {
+        "type": "object",
+        "properties": {
+          "cache": {
+            "type": "object",
+            "properties": {
+              "averageLatencyMs": {
+                "type": "number",
+                "minimum": 0
+              },
+              "enabled": {
+                "type": "boolean"
+              },
+              "errors": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "hits": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "misses": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "operations": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "averageLatencyMs",
+              "enabled",
+              "errors",
+              "hits",
+              "misses",
+              "operations"
+            ]
+          },
+          "service": {
+            "type": "string",
+            "enum": [
+              "skillbridge-api"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok"
+            ]
+          }
+        },
+        "required": [
+          "cache",
+          "service",
+          "status"
+        ]
+      },
       "CurrentUserEnvelope": {
         "type": "object",
         "properties": {
@@ -439,6 +497,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UnavailableHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/cache": {
+      "get": {
+        "summary": "Cache metrics",
+        "tags": [
+          "Health"
+        ],
+        "responses": {
+          "200": {
+            "description": "Process-local Redis cache hit, miss, error, and latency counters.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CacheHealth"
                 }
               }
             }

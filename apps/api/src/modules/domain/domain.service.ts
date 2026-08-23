@@ -1,6 +1,7 @@
 import type { DatabasePool, DatabasePoolClient } from '@skillbridge/database';
 
 import { conflict, forbidden, notFound } from '../../shared/http/api-error.js';
+import { noOpProjectCache, type ProjectCache } from '../cache/project.cache.js';
 import { noOpDomainEventPublisher, type DomainEventPublisher } from './domain.events.js';
 import type {
   ApplicationCreateInput,
@@ -122,6 +123,7 @@ export class DomainService {
   constructor(
     private readonly pool: DatabasePool,
     private readonly events: DomainEventPublisher = noOpDomainEventPublisher,
+    private readonly projectCache: ProjectCache = noOpProjectCache,
   ) {}
 
   async getProfile(userId: string) {
@@ -207,6 +209,13 @@ export class DomainService {
   }
 
   async listProjects(query: ProjectListQuery) {
+    const cached = await this.projectCache.getList<{
+      items: unknown[];
+      page: number;
+      pageSize: number;
+      total: number;
+    }>(query);
+    if (cached) return cached;
     const search = query.search ? `%${query.search}%` : null;
     const skill = query.skill ?? null;
     const offset = (query.page - 1) * query.limit;
@@ -235,15 +244,19 @@ export class DomainService {
       ),
     ]);
 
-    return {
+    const projects = {
       items: items.rows,
       page: query.page,
       pageSize: query.limit,
       total: count.rows[0]?.total ?? 0,
     };
+    await this.projectCache.setList(query, projects);
+    return projects;
   }
 
   async getProjectBySlug(slug: string) {
+    const cached = await this.projectCache.getDetail<Record<string, unknown>>(slug);
+    if (cached) return cached;
     const result = await this.pool.query(
       `SELECT ${projectSelection}
        FROM projects p
@@ -254,6 +267,7 @@ export class DomainService {
     if (!result.rows[0]) {
       throw notFound('PROJECT_NOT_FOUND', 'The project does not exist.');
     }
+    await this.projectCache.setDetail(slug, result.rows[0]);
     return result.rows[0];
   }
 
@@ -270,7 +284,9 @@ export class DomainService {
         await this.replaceRequiredSkills(client, id, input.requiredSkills);
         return id;
       });
-      return this.getProjectForManager(projectId, ownerId);
+      const project = await this.getProjectForManager(projectId, ownerId);
+      await this.projectCache.invalidateProjects();
+      return project;
     } catch (error) {
       if (databaseCode(error) === '23505') {
         throw conflict('PROJECT_SLUG_ALREADY_EXISTS', 'A project with this slug already exists.');
@@ -327,7 +343,9 @@ export class DomainService {
         await this.replaceRequiredSkills(client, projectId, input.requiredSkills);
       }
     });
-    return this.getProjectForManager(projectId, ownerId);
+    const project = await this.getProjectForManager(projectId, ownerId);
+    await this.projectCache.invalidateProjects();
+    return project;
   }
 
   async transitionProject(projectId: string, ownerId: string, input: ProjectTransitionInput) {
@@ -369,7 +387,9 @@ export class DomainService {
         `The ${input.action.toLowerCase()} transition is invalid from ${current.rows[0].status}.`,
       );
     }
-    return this.getProjectForManager(projectId, ownerId);
+    const project = await this.getProjectForManager(projectId, ownerId);
+    await this.projectCache.invalidateProjects();
+    return project;
   }
 
   async listMembers(projectId: string, userId: string) {
@@ -475,7 +495,7 @@ export class DomainService {
     managerId: string,
     input: ApplicationDecisionInput,
   ) {
-    return withTransaction(this.pool, async (client) => {
+    const decision = await withTransaction(this.pool, async (client) => {
       const application = await client.query<{
         applicantId: string;
         capacity: number;
@@ -525,6 +545,8 @@ export class DomainService {
       }
       return decided.rows[0];
     });
+    if (input.decision === 'ACCEPTED') await this.projectCache.invalidateProjects();
+    return decision;
   }
 
   async createSprint(projectId: string, userId: string, input: SprintCreateInput) {
