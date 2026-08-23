@@ -1,8 +1,13 @@
 import { Router } from 'express';
 
+import type { CacheMetrics } from '../cache/project.cache.js';
+
 export type ReadinessCheck = () => Promise<void>;
 
-export const createHealthRouter = (checkReadiness: ReadinessCheck) => {
+export const createHealthRouter = (
+  checkReadiness: ReadinessCheck,
+  getCacheMetrics: () => CacheMetrics,
+) => {
   const router = Router();
 
   const liveResponse = () => ({
@@ -31,6 +36,12 @@ export const createHealthRouter = (checkReadiness: ReadinessCheck) => {
         dependencies: { database: 'unavailable' },
       });
     }
+  });
+
+  router.get('/cache', (_request, response) => {
+    response
+      .status(200)
+      .json({ cache: getCacheMetrics(), service: 'skillbridge-api', status: 'ok' });
   });
 
   return router;

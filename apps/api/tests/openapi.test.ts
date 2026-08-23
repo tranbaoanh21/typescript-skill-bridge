@@ -32,6 +32,7 @@ describe('OpenAPI contract', () => {
       '/api/v1/skills',
       '/api/v1/tasks/{taskId}',
       '/health',
+      '/health/cache',
       '/health/live',
       '/health/ready',
     ]);

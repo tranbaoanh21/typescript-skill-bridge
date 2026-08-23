@@ -10,7 +10,7 @@ Create a profile → Find a project → Apply → Form a team → Collaborate �
 
 ## Project status
 
-Requirements, PostgreSQL invariants, authentication, executable API contracts, the core domain API, the responsive React web MVP, deterministic quality gates, Docker runtime, and Socket.IO collaboration are operational. Redis scaling, asynchronous workers, mobile, and delivery phases continue through reviewed, short-lived feature branches.
+Requirements, PostgreSQL invariants, authentication, executable API contracts, the core domain API, the responsive React web MVP, deterministic quality gates, Docker runtime, Socket.IO collaboration, and Redis scaling are operational. Asynchronous workers, mobile, and delivery phases continue through reviewed, short-lived feature branches.
 
 ## Planned platform
 
@@ -60,6 +60,7 @@ The initial development endpoints are:
 - Web: `http://localhost:5173`
 - API health: `http://localhost:3000/health`
 - API readiness: `http://localhost:3000/health/ready`
+- Redis cache metrics: `http://localhost:3000/health/cache`
 - Authentication API: `http://localhost:3000/api/v1/auth`
 - Core domain API: `http://localhost:3000/api/v1`
 - Swagger UI: `http://localhost:3000/docs`
@@ -98,7 +99,9 @@ npm run db:explain
 Run invariant tests against the test database:
 
 ```bash
-TEST_DATABASE_URL=postgresql://skillbridge:skillbridge@localhost:5434/skillbridge_test npm run test:integration
+TEST_DATABASE_URL=postgresql://skillbridge:skillbridge@localhost:5434/skillbridge_test \
+REDIS_URL=redis://:skillbridge-redis@localhost:6379 \
+npm run test:integration
 ```
 
 Postgres.app and pgAdmin 4 setup, the physical ERD, constraint ownership, and migration policy are documented in [docs/database/README.md](docs/database/README.md).
@@ -146,3 +149,5 @@ Playwright automatically migrates and seeds only a database named `skillbridge_t
 ## Realtime collaboration
 
 The team workspace uses authenticated Socket.IO rooms for durable chat, task events, reconnect recovery, presence, and typing signals. PostgreSQL and REST remain the source of truth. Event contracts, persist-before-broadcast ordering, idempotency, room authorization, and recovery behavior are documented in [docs/realtime/socketio.md](docs/realtime/socketio.md).
+
+Redis provides cache-aside project reads, atomic auth rate limiting, TTL presence, and Socket.IO Pub/Sub across API instances. Keys, invalidation, metrics, sticky sessions, and failure behavior are documented in [docs/realtime/redis.md](docs/realtime/redis.md).

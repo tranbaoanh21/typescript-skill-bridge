@@ -68,6 +68,7 @@ jobs:
       DATABASE_URL: postgresql://skillbridge:skillbridge@localhost:5432/skillbridge_test
       DATABASE_DIRECT_URL: postgresql://skillbridge:skillbridge@localhost:5432/skillbridge_test
       E2E_DATABASE_URL: postgresql://skillbridge:skillbridge@localhost:5432/skillbridge_test
+      REDIS_URL: redis://localhost:6379
       TEST_DATABASE_URL: postgresql://skillbridge:skillbridge@localhost:5432/skillbridge_test
       TURBO_TELEMETRY_DISABLED: 1
     services:
@@ -81,6 +82,15 @@ jobs:
           - 5432:5432
         options: >-
           --health-cmd "pg_isready -U skillbridge -d skillbridge_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+      redis:
+        image: redis:8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
           --health-interval 5s
           --health-timeout 3s
           --health-retries 10

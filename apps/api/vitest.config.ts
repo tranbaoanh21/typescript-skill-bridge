@@ -5,6 +5,7 @@ export default defineConfig({
     coverage: {
       exclude: [
         'src/server.ts',
+        'src/infrastructure/**',
         'src/types/**',
         'src/modules/domain/domain.events.ts',
         'src/modules/realtime/**',

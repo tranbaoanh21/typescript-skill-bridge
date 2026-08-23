@@ -43,6 +43,24 @@ describe('SkillBridge API', () => {
     expect(readyResponse.body.dependencies).toEqual({ database: 'ready' });
   });
 
+  it('exposes cache metrics without requiring Redis', async () => {
+    const response = await request(app).get('/health/cache');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      cache: {
+        averageLatencyMs: 0,
+        enabled: false,
+        errors: 0,
+        hits: 0,
+        misses: 0,
+        operations: 0,
+      },
+      service: 'skillbridge-api',
+      status: 'ok',
+    });
+  });
+
   it('returns bad request for malformed JSON', async () => {
     const response = await request(app)
       .post('/api/v1/auth/register')

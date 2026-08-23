@@ -1,6 +1,6 @@
 # Docker local runtime
 
-Phase 9 cung cấp một runtime gần production cho API và một local infrastructure stack có health checks. PostgreSQL vẫn là source of truth; Redis và RabbitMQ được khởi động sẵn cho các phase distributed systems tiếp theo nhưng API hiện chưa ghi dữ liệu nghiệp vụ vào hai service này.
+Phase 9 cung cấp một runtime gần production cho API và một local infrastructure stack có health checks. PostgreSQL vẫn là source of truth. API dùng Redis cho cache, rate limit, distributed presence và Socket.IO Pub/Sub; không có dữ liệu nghiệp vụ duy nhất nằm trong Redis. RabbitMQ được khởi động sẵn cho background worker Phase 12.
 
 ## Service topology
 
@@ -29,6 +29,7 @@ Các endpoint local:
 
 - API: `http://localhost:3000`
 - Readiness: `http://localhost:3000/health/ready`
+- Cache metrics: `http://localhost:3000/health/cache`
 - Swagger UI: `http://localhost:3000/docs`
 - PostgreSQL: `localhost:5433`
 - Redis: `localhost:6379`
@@ -79,7 +80,9 @@ Khởi động PostgreSQL test tạm thời trên cổng `5434`:
 
 ```bash
 npm run docker:test-db
-TEST_DATABASE_URL=postgresql://skillbridge:skillbridge@localhost:5434/skillbridge_test npm run test:integration
+TEST_DATABASE_URL=postgresql://skillbridge:skillbridge@localhost:5434/skillbridge_test \
+REDIS_URL=redis://:skillbridge-redis@localhost:6379 \
+npm run test:integration
 ```
 
 Test service dùng `tmpfs`, vì vậy data biến mất khi container bị xóa. Không chạy đồng thời `compose.database.yaml` cũ và full `compose.yaml`, vì cả hai mặc định dùng cổng `5433`/`5434`.

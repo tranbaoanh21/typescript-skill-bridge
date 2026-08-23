@@ -82,13 +82,13 @@ GET /api/v1/projects/{projectId}/messages?afterMessageId={uuid}&limit=50
 Authorization: Bearer {accessToken}
 ```
 
-Task recovery dùng endpoint REST `GET /projects/{projectId}/tasks` hiện có. Phase 11 Redis Pub/Sub sẽ scale live broadcast qua nhiều API instances; recovery vẫn dựa vào PostgreSQL, không dựa vào Redis adapter.
+Task recovery dùng endpoint REST `GET /projects/{projectId}/tasks` hiện có. Redis Pub/Sub scale live broadcast qua nhiều API instances; recovery vẫn dựa vào PostgreSQL, không dựa vào Redis adapter.
 
 ## Presence and typing
 
-Presence hiện lưu in-memory theo API instance. Disconnect chỉ phát offline sau grace TTL 15 giây để một reconnect nhanh không làm trạng thái nhấp nháy. Nhiều tab của cùng user dùng socket set; user chỉ offline khi socket cuối cùng mất kết nối và hết TTL.
+Presence giữ local socket set trên từng API instance và heartbeat có TTL trong Redis sorted set. Disconnect chỉ phát offline sau grace TTL để một reconnect nhanh không làm trạng thái nhấp nháy; instance chỉ phát offline nếu Redis cũng xác nhận user không còn heartbeat ở instance khác. Nhiều tab của cùng user dùng socket set; user chỉ offline khi socket cuối cùng mất kết nối và hết TTL.
 
-Typing là ephemeral, không ghi database. Server tự phát `active: false` sau bốn giây nếu client không refresh signal. Phase 11 sẽ chuyển presence TTL sang Redis khi chạy nhiều instances.
+Typing là ephemeral, không ghi database. Server tự phát `active: false` sau bốn giây nếu client không refresh signal.
 
 ## Failure behavior
 
@@ -96,6 +96,9 @@ Typing là ephemeral, không ghi database. Server tự phát `active: false` sau
 - Ack bị mất: client retry cùng `clientMessageId`, không duplicate side effect.
 - Socket disconnect: reconnect dùng cursor/REST để bù durable messages và REST để refetch tasks.
 - User không còn membership: join/send/typing bị từ chối dù socket hoặc token cũ vẫn còn.
-- API instance restart: presence/typing mất tạm thời; durable message/task không mất.
+- API instance restart: local presence/typing mất tạm thời; Redis heartbeat hết hạn tự động; durable message/task không mất.
+- Redis mất kết nối: cùng-instance broadcast vẫn hoạt động, cross-instance broadcast tạm dừng; reconnect/REST bù lại durable event.
+
+Key policy, multi-instance topology, sticky-session note và failure matrix nằm trong [redis.md](redis.md).
 
 Integration suite chạy Socket.IO clients thật và xác minh unauthorized room, persist-before-broadcast, idempotent retry, missed-message recovery, typing TTL và task event sau commit.

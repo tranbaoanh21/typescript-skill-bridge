@@ -6,6 +6,8 @@ import type {
   ServerToClientEvents,
 } from '@skillbridge/contracts';
 import type { DatabasePool } from '@skillbridge/database';
+import { createAdapter } from '@socket.io/redis-adapter';
+import type { RedisClientType } from 'redis';
 import { Server } from 'socket.io';
 import { ZodError } from 'zod';
 
@@ -14,6 +16,7 @@ import type { AuthenticatedUser } from '../auth/auth.types.js';
 import type { TokenService } from '../auth/token.service.js';
 import type { DomainEventBus } from '../domain/domain.events.js';
 import { messageSendSchema, projectJoinSchema, typingSchema } from './realtime.schemas.js';
+import type { PresenceStore } from './presence.store.js';
 import { RealtimeService } from './realtime.service.js';
 
 interface SocketData {
@@ -26,7 +29,9 @@ interface RealtimeServerOptions {
   domainEvents: DomainEventBus;
   httpServer: HttpServer;
   pool: DatabasePool;
+  presenceStore?: PresenceStore;
   presenceTtlMs?: number;
+  redisAdapter?: { publisher: RedisClientType; subscriber: RedisClientType };
   tokenService: TokenService;
   typingTtlMs?: number;
 }
@@ -57,7 +62,9 @@ export const attachRealtimeServer = ({
   domainEvents,
   httpServer,
   pool,
+  presenceStore,
   presenceTtlMs = 15_000,
+  redisAdapter,
   tokenService,
   typingTtlMs = 4_000,
 }: RealtimeServerOptions) => {
@@ -71,25 +78,32 @@ export const attachRealtimeServer = ({
     cors: { origin: corsOrigin },
     maxHttpBufferSize: 16_384,
   });
+  if (redisAdapter) io.adapter(createAdapter(redisAdapter.publisher, redisAdapter.subscriber));
   const presence = new Map<string, Map<string, Set<string>>>();
   const presenceTimers = new Map<string, NodeJS.Timeout>();
   const typingTimers = new Map<string, NodeJS.Timeout>();
 
-  const onlineUsers = (projectId: string) => [...(presence.get(projectId)?.keys() ?? [])];
+  const onlineUsers = async (projectId: string) => {
+    const local = [...(presence.get(projectId)?.keys() ?? [])];
+    const distributed = presenceStore ? await presenceStore.listOnline(projectId) : [];
+    return [...new Set([...local, ...distributed])];
+  };
 
-  const addPresence = (projectId: string, userId: string, socketId: string) => {
+  const addPresence = async (projectId: string, userId: string, socketId: string) => {
     const timerKey = userInProject(projectId, userId);
     const pendingOffline = presenceTimers.get(timerKey);
     if (pendingOffline) {
       clearTimeout(pendingOffline);
       presenceTimers.delete(timerKey);
     }
+    const wasDistributedOnline = (await presenceStore?.isOnline(projectId, userId)) ?? false;
     const projectPresence = presence.get(projectId) ?? new Map<string, Set<string>>();
     const sockets = projectPresence.get(userId) ?? new Set<string>();
-    const wasOnline = sockets.size > 0;
+    const wasOnline = sockets.size > 0 || Boolean(pendingOffline) || wasDistributedOnline;
     sockets.add(socketId);
     projectPresence.set(userId, sockets);
     presence.set(projectId, projectPresence);
+    await presenceStore?.touch(projectId, userId, presenceTtlMs);
     if (!wasOnline) {
       io.to(projectRoom(projectId)).emit('presence:changed', { online: true, projectId, userId });
     }
@@ -102,13 +116,14 @@ export const attachRealtimeServer = ({
     if (sockets.size > 0) return;
 
     const timerKey = userInProject(projectId, userId);
-    const timer = setTimeout(() => {
+    const timer = setTimeout(async () => {
       const projectPresence = presence.get(projectId);
       const currentSockets = projectPresence?.get(userId);
       if (currentSockets?.size) return;
       projectPresence?.delete(userId);
       if (projectPresence?.size === 0) presence.delete(projectId);
       presenceTimers.delete(timerKey);
+      if (await presenceStore?.isOnline(projectId, userId)) return;
       io.to(projectRoom(projectId)).emit('presence:changed', { online: false, projectId, userId });
     }, presenceTtlMs);
     timer.unref();
@@ -141,8 +156,11 @@ export const attachRealtimeServer = ({
           limit: 100,
         });
         socket.data.joinedProjectIds.add(input.projectId);
-        addPresence(input.projectId, socket.data.user.id, socket.id);
-        acknowledge({ data: { messages, onlineUserIds: onlineUsers(input.projectId) }, ok: true });
+        await addPresence(input.projectId, socket.data.user.id, socket.id);
+        acknowledge({
+          data: { messages, onlineUserIds: await onlineUsers(input.projectId) },
+          ok: true,
+        });
       } catch (error) {
         acknowledge(ackError(error));
       }
@@ -219,8 +237,23 @@ export const attachRealtimeServer = ({
     }
   });
 
+  const heartbeat = presenceStore
+    ? setInterval(
+        () => {
+          for (const socket of io.sockets.sockets.values()) {
+            for (const projectId of socket.data.joinedProjectIds) {
+              void presenceStore.touch(projectId, socket.data.user.id, presenceTtlMs);
+            }
+          }
+        },
+        Math.max(1_000, Math.floor(presenceTtlMs / 3)),
+      )
+    : undefined;
+  heartbeat?.unref();
+
   io.engine.on('close', () => {
     unsubscribe();
+    if (heartbeat) clearInterval(heartbeat);
     for (const timer of presenceTimers.values()) clearTimeout(timer);
     for (const timer of typingTimers.values()) clearTimeout(timer);
   });
