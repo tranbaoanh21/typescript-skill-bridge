@@ -1,6 +1,6 @@
 # HCMUT SkillBridge — Ultimate Full-stack Project Plan
 
-> Trạng thái: **IN PROGRESS — requirements, database, API contracts, core domain và React web MVP đã hoàn tất**
+> Trạng thái: **IN PROGRESS — requirements, database, API contracts, core domain, React web MVP và quality engineering đã hoàn tất**
 > Đối tượng học: sinh viên năm 2 HCMUT
 > Mục tiêu: xây dựng một sản phẩm đủ chiều sâu để học Công nghệ phần mềm, full-stack TypeScript, cơ sở dữ liệu, realtime, message queue, DevOps, mobile và nền tảng AWS.
 > Repository: [`tranbaoanh21/typescript-skill-bridge`](https://github.com/tranbaoanh21/typescript-skill-bridge)
@@ -894,6 +894,8 @@ Thời lượng chỉ là ước lượng học tập. Mỗi phase kết thúc b
 - Responsive ở mobile/tablet/desktop breakpoints đã chọn.
 
 ### Phase 8 — Quality engineering (5–7 ngày)
+
+**Trạng thái:** Hoàn tất ngày 24/08/2026; unit/component, PostgreSQL integration, Newman và Playwright critical journeys chạy deterministic ở local; coverage floors, production dependency audit, Dependabot và CI failure artifacts đã được thiết lập.
 
 **Mục tiêu**
 

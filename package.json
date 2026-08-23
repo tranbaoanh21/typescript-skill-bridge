@@ -2,6 +2,7 @@
   "name": "hcmut-skillbridge",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "A TypeScript full-stack platform for student project discovery and collaboration.",
   "packageManager": "npm@11.17.0",
   "engines": {
@@ -22,16 +23,22 @@
     "dev": "turbo dev",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "turbo lint",
+    "lint": "turbo lint && eslint e2e playwright.config.ts",
     "openapi:check": "npm run openapi:check --workspace @skillbridge/api",
     "openapi:generate": "npm run openapi:generate --workspace @skillbridge/api",
     "postman:test": "npm run postman:test --workspace @skillbridge/api",
+    "security:audit": "npm audit --omit=dev --audit-level=high",
     "test": "turbo test",
+    "test:coverage": "npm run test:coverage --workspace @skillbridge/api && npm run test:coverage --workspace @skillbridge/web",
+    "test:e2e": "npm run build --workspace @skillbridge/database && playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "test:integration": "turbo test:integration",
-    "typecheck": "turbo typecheck"
+    "typecheck": "turbo typecheck && tsc -p tsconfig.e2e.json --noEmit --pretty false"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.62.1",
+    "@vitest/coverage-v8": "^4.1.11",
     "eslint": "^10.8.1",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.4",
