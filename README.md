@@ -48,6 +48,13 @@ npm install
 npm run dev
 ```
 
+Hoặc khởi động API cùng PostgreSQL, Redis và RabbitMQ bằng runtime containers:
+
+```bash
+npm run docker:up
+npm run docker:seed
+```
+
 The initial development endpoints are:
 
 - Web: `http://localhost:5173`
@@ -73,10 +80,11 @@ npm run build
 
 ## Database development
 
-Start isolated PostgreSQL 18.4 dev and test databases:
+Khuyến nghị dùng full local stack; PostgreSQL test được tách bằng Compose profile:
 
 ```bash
-docker compose -f infrastructure/docker/compose.database.yaml up -d --wait
+npm run docker:up
+npm run docker:test-db
 ```
 
 Configure `packages/database/.env` from `packages/database/.env.example`, then run:
@@ -94,6 +102,8 @@ TEST_DATABASE_URL=postgresql://skillbridge:skillbridge@localhost:5434/skillbridg
 ```
 
 Postgres.app and pgAdmin 4 setup, the physical ERD, constraint ownership, and migration policy are documented in [docs/database/README.md](docs/database/README.md).
+
+Container topology, migration/seed jobs, environment overrides, image review và troubleshooting được mô tả trong [docs/deployment/docker-local.md](docs/deployment/docker-local.md).
 
 ## Authentication API
 

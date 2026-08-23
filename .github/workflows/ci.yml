@@ -126,3 +126,67 @@ jobs:
             test-results/
           if-no-files-found: ignore
           retention-days: 7
+
+  container:
+    name: Container smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATABASE_URL: postgresql://skillbridge:skillbridge@127.0.0.1:5432/skillbridge_test
+    services:
+      postgres:
+        image: postgres:18.4-alpine
+        env:
+          POSTGRES_DB: skillbridge_test
+          POSTGRES_USER: skillbridge
+          POSTGRES_PASSWORD: skillbridge
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U skillbridge -d skillbridge_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Build production API image
+        run: docker build --target runtime --file infrastructure/docker/Dockerfile.api --tag skillbridge-api:ci .
+
+      - name: Verify production-only non-root runtime
+        run: |
+          test "$(docker image inspect skillbridge-api:ci --format '{{.Config.User}}')" = "node"
+          docker run --rm skillbridge-api:ci node -e "for (const dependency of ['typescript', 'vitest', 'newman']) { try { require.resolve(dependency); process.exit(1); } catch {} }"
+
+      - name: Apply migrations from immutable image
+        run: docker run --rm --network host --env DATABASE_URL skillbridge-api:ci node packages/database/dist/cli/migrate.js
+
+      - name: Start API image
+        run: |
+          docker run --detach --network host --name skillbridge-api-ci \
+            --env AUTH_TOKEN_AUDIENCE=skillbridge-ci-clients \
+            --env AUTH_TOKEN_ISSUER=skillbridge-ci \
+            --env DATABASE_URL \
+            --env ENABLE_API_DOCS=false \
+            --env JWT_ACCESS_SECRET=ci-only-secret-with-at-least-thirty-two-characters \
+            --env NODE_ENV=production \
+            --env PORT=3000 \
+            --env WEB_ORIGIN=http://localhost:4173 \
+            skillbridge-api:ci
+
+      - name: Wait for container readiness
+        run: |
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3000/health/ready; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs skillbridge-api-ci
+          exit 1
+
+      - name: Show API logs on failure
+        if: failure()
+        run: docker logs skillbridge-api-ci
