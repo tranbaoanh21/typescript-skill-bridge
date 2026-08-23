@@ -1,6 +1,6 @@
 # HCMUT SkillBridge — Ultimate Full-stack Project Plan
 
-> Trạng thái: **IN PROGRESS — requirements, database, API contracts, core domain, React web MVP và quality engineering đã hoàn tất**
+> Trạng thái: **IN PROGRESS — requirements, database, API contracts, core domain, React web MVP, quality engineering và Docker runtime đã hoàn tất**
 > Đối tượng học: sinh viên năm 2 HCMUT
 > Mục tiêu: xây dựng một sản phẩm đủ chiều sâu để học Công nghệ phần mềm, full-stack TypeScript, cơ sở dữ liệu, realtime, message queue, DevOps, mobile và nền tảng AWS.
 > Repository: [`tranbaoanh21/typescript-skill-bridge`](https://github.com/tranbaoanh21/typescript-skill-bridge)
@@ -919,13 +919,15 @@ Thời lượng chỉ là ước lượng học tập. Mỗi phase kết thúc b
 
 ### Phase 9 — Docker local development (3–5 ngày)
 
+**Trạng thái:** Hoàn tất ngày 24/08/2026; API image multi-stage production-only/non-root, full Compose dependency graph, dev/test migrations, idempotent seed, health checks, volumes, runtime smoke test và CI container gate đã được thiết lập.
+
 **Mục tiêu**
 
 - Chuẩn hóa môi trường và containerize runtime.
 
 **Công việc**
 
-- Multi-stage Dockerfile cho API và worker.
+- Multi-stage Dockerfile cho API; worker áp dụng cùng chuẩn khi code worker được tạo ở Phase 12.
 - Compose services: PostgreSQL test/dev tùy profile, Redis, RabbitMQ.
 - Named volumes và health checks.
 - Non-root runtime user.

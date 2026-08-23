@@ -1,0 +1,167 @@
+name: skillbridge-local
+
+x-postgres-environment: &postgres-environment
+  POSTGRES_DB: ${POSTGRES_DB:-skillbridge}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-skillbridge}
+  POSTGRES_USER: ${POSTGRES_USER:-skillbridge}
+
+x-api-environment: &api-environment
+  AUTH_TOKEN_AUDIENCE: ${AUTH_TOKEN_AUDIENCE:-skillbridge-clients}
+  AUTH_TOKEN_ISSUER: ${AUTH_TOKEN_ISSUER:-skillbridge-api}
+  DATABASE_POOL_MAX: ${DATABASE_POOL_MAX:-10}
+  DATABASE_URL: postgresql://${POSTGRES_USER:-skillbridge}:${POSTGRES_PASSWORD:-skillbridge}@postgres:5432/${POSTGRES_DB:-skillbridge}
+  ENABLE_API_DOCS: ${ENABLE_API_DOCS:-true}
+  JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-local-only-secret-change-before-any-deployment}
+  JWT_ACCESS_TTL_SECONDS: ${JWT_ACCESS_TTL_SECONDS:-900}
+  NODE_ENV: production
+  PORT: 3000
+  REFRESH_TOKEN_TTL_DAYS: ${REFRESH_TOKEN_TTL_DAYS:-30}
+  WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:5173}
+
+services:
+  postgres:
+    image: postgres:18.4-alpine
+    environment: *postgres-environment
+    ports:
+      - '${POSTGRES_PORT:-5433}:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U ${POSTGRES_USER:-skillbridge} -d ${POSTGRES_DB:-skillbridge}
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  postgres-test:
+    image: postgres:18.4-alpine
+    profiles:
+      - test
+    environment:
+      POSTGRES_DB: skillbridge_test
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-skillbridge}
+      POSTGRES_USER: ${POSTGRES_USER:-skillbridge}
+    ports:
+      - '${POSTGRES_TEST_PORT:-5434}:5432'
+    tmpfs:
+      - /var/lib/postgresql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U ${POSTGRES_USER:-skillbridge} -d skillbridge_test
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  migrate-test:
+    image: skillbridge-api:local
+    profiles:
+      - test
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.api
+      target: runtime
+    command:
+      - node
+      - packages/database/dist/cli/migrate.js
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-skillbridge}:${POSTGRES_PASSWORD:-skillbridge}@postgres-test:5432/skillbridge_test
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    restart: 'no'
+
+  redis:
+    image: redis:8-alpine
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-skillbridge-redis}
+    command:
+      - redis-server
+      - --appendonly
+      - 'yes'
+      - --requirepass
+      - ${REDIS_PASSWORD:-skillbridge-redis}
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep PONG
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-skillbridge-rabbit}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-skillbridge}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-skillbridge}
+    ports:
+      - '${RABBITMQ_PORT:-5672}:5672'
+      - '${RABBITMQ_MANAGEMENT_PORT:-15672}:15672'
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test:
+        - CMD
+        - rabbitmq-diagnostics
+        - -q
+        - ping
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  migrate:
+    image: skillbridge-api:local
+    command:
+      - node
+      - packages/database/dist/cli/migrate.js
+    environment: *api-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+
+  seed:
+    image: skillbridge-api:local
+    profiles:
+      - tools
+    command:
+      - node
+      - packages/database/dist/cli/seed.js
+    environment: *api-environment
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: 'no'
+
+  api:
+    image: skillbridge-api:local
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.api
+      target: runtime
+    init: true
+    environment: *api-environment
+    ports:
+      - '${API_PORT:-3000}:3000'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  redis_data:
