@@ -20,6 +20,7 @@ import {
   taskUpdateSchema,
   userSkillsUpdateSchema,
 } from '../modules/domain/domain.schemas.js';
+import { messageListQuerySchema } from '../modules/realtime/realtime.schemas.js';
 import { z } from '../shared/validation/zod.js';
 
 const registry = new OpenAPIRegistry();
@@ -209,7 +210,7 @@ interface DomainPathOptions {
   query?: z.ZodObject;
   status?: number;
   summary: string;
-  tag: 'Profiles' | 'Projects' | 'Applications' | 'Workspace' | 'Administration';
+  tag: 'Profiles' | 'Projects' | 'Applications' | 'Workspace' | 'Realtime' | 'Administration';
 }
 
 const registerDomainPath = ({
@@ -463,6 +464,14 @@ registerDomainPath({
   tag: 'Workspace',
 });
 registerDomainPath({
+  method: 'get',
+  params: projectIdParams,
+  path: '/api/v1/projects/{projectId}/messages',
+  query: messageListQuerySchema,
+  summary: 'Recover durable project messages after an optional cursor',
+  tag: 'Realtime',
+});
+registerDomainPath({
   body: accountStatusSchema,
   bodyExample: { status: 'SUSPENDED' },
   method: 'patch',
@@ -614,6 +623,10 @@ export const createOpenApiDocument = () =>
       { description: 'Project discovery, ownership, and lifecycle.', name: 'Projects' },
       { description: 'Application submission and decisions.', name: 'Applications' },
       { description: 'Member-only sprints and task board.', name: 'Workspace' },
+      {
+        description: 'Durable recovery endpoints that complement the Socket.IO protocol.',
+        name: 'Realtime',
+      },
       { description: 'Global moderation and audit events.', name: 'Administration' },
     ],
   });

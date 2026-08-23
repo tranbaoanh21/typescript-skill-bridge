@@ -63,6 +63,7 @@ export default defineConfig({
       env: {
         VITE_API_DOCS_URL: `http://127.0.0.1:${apiPort}/docs`,
         VITE_API_URL: `http://127.0.0.1:${apiPort}/api/v1`,
+        VITE_REALTIME_URL: `http://127.0.0.1:${apiPort}`,
       },
       reuseExistingServer: !process.env['CI'],
       timeout: 60_000,

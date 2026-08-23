@@ -493,6 +493,30 @@
       ]
     },
     {
+      "name": "Realtime - Recover project messages",
+      "request": {
+        "method": "GET",
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "{{applicantAccessToken}}", "type": "string" }]
+        },
+        "url": "{{baseUrl}}/api/v1/projects/{{projectId}}/messages?limit=50"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('recovers durable messages for a project member', () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().data.messages).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "Core - Create sprint",
       "request": {
         "method": "POST",

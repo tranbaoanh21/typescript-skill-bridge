@@ -97,4 +97,9 @@ test('owner and applicant complete the collaboration workflow', async ({ page },
   await expect(page.getByRole('heading', { name: taskTitle })).toBeVisible();
   await page.getByRole('button', { name: `Move ${taskTitle} to IN_PROGRESS` }).click();
   await expect(page.getByRole('button', { name: `Move ${taskTitle} to REVIEW` })).toBeVisible();
+
+  const teamMessage = `Realtime decision ${runId}`;
+  await page.getByRole('textbox', { name: 'Team message' }).fill(teamMessage);
+  await page.getByRole('button', { name: 'Send team message' }).click();
+  await expect(page.getByLabel('Team chat').getByText(teamMessage)).toBeVisible();
 });

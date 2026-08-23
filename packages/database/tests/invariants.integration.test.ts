@@ -329,6 +329,50 @@ describe('PostgreSQL core invariants', () => {
     });
   });
 
+  it('rejects blank durable project messages', async () => {
+    await inRollbackTransaction(async (client) => {
+      const ownerId = await insertUser(client);
+      const projectId = await insertProject(client, ownerId);
+      const error = await captureDatabaseError(
+        client.query(
+          `INSERT INTO project_messages (project_id, sender_id, client_message_id, body)
+           VALUES ($1, $2, $3, '   ')`,
+          [projectId, ownerId, randomUUID()],
+        ),
+      );
+
+      expect(error).toMatchObject({
+        code: '23514',
+        constraint: 'project_messages_body_check',
+      });
+    });
+  });
+
+  it('enforces one durable message per sender idempotency key', async () => {
+    await inRollbackTransaction(async (client) => {
+      const ownerId = await insertUser(client);
+      const projectId = await insertProject(client, ownerId);
+      const clientMessageId = randomUUID();
+      await client.query(
+        `INSERT INTO project_messages (project_id, sender_id, client_message_id, body)
+         VALUES ($1, $2, $3, 'First delivery')`,
+        [projectId, ownerId, clientMessageId],
+      );
+      const error = await captureDatabaseError(
+        client.query(
+          `INSERT INTO project_messages (project_id, sender_id, client_message_id, body)
+           VALUES ($1, $2, $3, 'Duplicate delivery')`,
+          [projectId, ownerId, clientMessageId],
+        ),
+      );
+
+      expect(error).toMatchObject({
+        code: '23505',
+        constraint: 'project_messages_sender_client_unique',
+      });
+    });
+  });
+
   it('prevents audit records from being changed or deleted', async () => {
     await inRollbackTransaction(async (client) => {
       const actorId = await insertUser(client);

@@ -10,6 +10,8 @@ import type { TokenService } from './modules/auth/token.service.js';
 import { createDomainRouter } from './modules/domain/domain.routes.js';
 import type { DomainService } from './modules/domain/domain.service.js';
 import { createHealthRouter, type ReadinessCheck } from './modules/health/health.routes.js';
+import { createRealtimeRouter } from './modules/realtime/realtime.routes.js';
+import type { RealtimeService } from './modules/realtime/realtime.service.js';
 import { handleError } from './shared/http/error-handler.js';
 import { createRequestId } from './shared/http/request-context.js';
 
@@ -26,6 +28,10 @@ export interface AppOptions {
   };
   enableApiDocs?: boolean;
   enableRequestLogging?: boolean;
+  realtime?: {
+    service: RealtimeService;
+    tokenService: TokenService;
+  };
 }
 
 export const createApp = ({
@@ -35,6 +41,7 @@ export const createApp = ({
   domain,
   enableApiDocs = false,
   enableRequestLogging = true,
+  realtime,
 }: AppOptions) => {
   const app = express();
 
@@ -70,6 +77,10 @@ export const createApp = ({
 
   if (domain) {
     app.use('/api/v1', createDomainRouter(domain.service, domain.tokenService));
+  }
+
+  if (realtime) {
+    app.use('/api/v1', createRealtimeRouter(realtime.service, realtime.tokenService));
   }
 
   app.use((request, response) => {
